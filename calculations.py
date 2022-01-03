@@ -1,6 +1,7 @@
 import itertools
 from pathlib import Path
 import pandas as pd
+# from rollen import dummy_rol_is_baan
 
 
 from openpyxl import load_workbook
@@ -113,6 +114,7 @@ testdf = file_to_generator(r'C:\Users\Dhr. Ten Hoonte\PycharmProjects\df_naar_cs
 testdf7 = file_to_generator(r'C:\Users\Dhr. Ten Hoonte\PycharmProjects\df_naar_csv\test_excel\202124565 Geisha per 7 art.xlsx')
 test_mouthaan = file_to_generator(r'C:\Users\Dhr. Ten Hoonte\PycharmProjects\df_naar_csv\test_excel\202170964 verzameld v proef als geisha.xlsx')
 test_engelvaartwibra = file_to_generator(r'C:\Users\Dhr. Ten Hoonte\PycharmProjects\df_naar_csv\test_excel\202177773.xlsx')
+standaardtestfile =  file_to_generator(r'C:\Users\Dhr. Ten Hoonte\PycharmProjects\df_naar_csv\rollen\standaard_aanlever_excel.xlsx')
 
 
 def rol_cq_regel_uitwerker(regel, wikkel, posities_sluitbarcode=8, extra_etiketten =5):
@@ -120,7 +122,7 @@ def rol_cq_regel_uitwerker(regel, wikkel, posities_sluitbarcode=8, extra_etikett
      of 3 standaard kolommen
      volgens mij heb ik er een generator van gemaakt en dat is een generator dataframe
      waar ik in kan slicen"""
-    aantal = int(regel.aantal)  + int (extra_etiketten)
+    aantal = int(regel.aantal)  # + int (extra_etiketten)
     artnummer = regel.Artnr
     columns = ["beeld", "omschrijving", "Artnr", "sluitbarcode"]
 
@@ -128,7 +130,7 @@ def rol_cq_regel_uitwerker(regel, wikkel, posities_sluitbarcode=8, extra_etikett
 
     rol_vulling = pd.DataFrame(
         [(f'{regel.beeld}', "", "",f"{regel.sluitbarcode:>{0}{posities_sluitbarcode}}")
-         for x in range(aantal ) for i in range(1)], columns=columns)
+         for x in range(aantal + int (extra_etiketten)) for i in range(1)], columns=columns)
 
     sluit = pd.DataFrame([('leeg.pdf',
                            f'{regel.Omschrijving} | {aantal} etiketten'
@@ -198,6 +200,7 @@ def splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afwijking_w
         gemiddelde = (totaal // (mes * aantalvdps)) - afwijking_waarde
     else:
         gemiddelde = gemiddelde - afwijking_waarde
+        # @ todo deze gemiddelde word nooit gebruikt?
     # gemiddelde = df_in.aantal.median()
     print(f'{gemiddelde = } met {afwijking_waarde}',f'{ aantal_rollen =}')
 
@@ -233,14 +236,72 @@ def splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afwijking_w
 
 
 def banen_in_vdp_check(aantalbanen, daadwerkelijk_gemaakte_banen):
-    #todo dummy dfbaan maken
+    # # try except for value error ValueError: Length mismatch:
+
+    #todo dummy dfbaan maken in splitter?
     if aantalbanen == daadwerkelijk_gemaakte_banen:
-        print(" gaan ")
+        print(" doorgaan ")
+        return True,0
     else:
         if aantalbanen> daadwerkelijk_gemaakte_banen:
+            dummybanen = aantalbanen-daadwerkelijk_gemaakte_banen
             print(f'{aantalbanen-daadwerkelijk_gemaakte_banen} te veel dus opnieuw berekenen')
+            print(f'maak {dummybanen} lege dummybanen')
+            return False,dummybanen
         else:
-            print(f'{daadwerkelijk_gemaakte_banen-aantalbanen} te weinig voeg lege baa(banen) toe')
+            dummybanen = daadwerkelijk_gemaakte_banen-aantalbanen
+            print(f'{daadwerkelijk_gemaakte_banen-aantalbanen} te weinig voeg lege baan(banen) toe')
+            print(f'maak {dummybanen} lege dummybanen')
+            return False,dummybanen
+
+
+def dummy_rol_is_baan(regel,gemiddelde_aantal,pdf_sluitetiket=True):
+    columns = ["beeld", "omschrijving", "Artnr", "sluitbarcode"]
+
+    aantal = gemiddelde_aantal
+
+    if pdf_sluitetiket != True:
+
+        rol_vulling = pd.DataFrame(
+            [(f'{regel.beeld}', "dummy_Baan", "", "met sluitbarcode ligt aan welke rol funct gekozen wordt")
+             for x in range(aantal) for i in range(1)], columns=columns)
+        return rol_vulling
+
+    else:
+        rol_vulling = pd.DataFrame(
+            [(f'{regel.beeld}', "dummy_BAAN", "", "zonder sluitbarcode ligt aan welke rol funct gekozen wordt")
+             for x in range(aantal) for i in range(1)], columns=columns)
+        return rol_vulling
+
+
+def maak_een_dummy_baan(dummy_baan_generator, gemiddelde, aantal_dummy_banen):
+    """#todo maak een of meerdere baan(banen) waarin hel beeld stans.pdf is
+    of maak van de hele invoer lijst banen met
+    beeldd door stans vervangen en haal de benodigde banen  hieruit, te omslachtig
+     gebruik generator zodat je de juiste headers hebt en gemiddelde
+     voor de juiste waarden
+         """
+    # vervang beeld waarde voor stans.pdf of leeg.pdf
+    dummy_baan_generator['beeld'] ="stans.pdf"
+    dummy_baan_generator['sluitbeeld'] ="leeg.pdf"
+
+
+    dummy_lijst_generator = dummy_baan_generator.itertuples()
+    dummy_banen = []
+    for baan in dummy_lijst_generator:
+        for i in range(gemiddelde):
+            dummy_banen.append(dummy_rol_is_baan(baan,gemiddelde,pdf_sluitetiket=True))
+
+    # haal benodigde aantal dummy banen uit lijst dummy banen
+    dummy_lijst_voor_baan = dummy_banen[:aantal_dummy_banen]    # uit deze lijst halen we het aantal benodigde dummy banen( 1 regel word 1 baan)
+    ic(dummy_lijst_voor_baan)
+
+
+
+    return (dummy_lijst_voor_baan,len(dummy_lijst_voor_baan))
+
+
+
 
 
 def lijst_opbreker(lijst_in, mes_waarde, combi):
@@ -289,7 +350,7 @@ def filter_kolommen_pdf(mes, de_kolomnaam):
 
 
 def filna_dict(kolomnaam,vulling, mes):
-    """"werkt. maar ga een dict comprehension proberen."""
+    """"werkt. maar probeer een dict comprehension"""
 
     key = [f'{kolomnaam}_{count+1}'for count in range(mes)]
     value = [f'{vulling}'for count in range(mes)]
@@ -355,4 +416,34 @@ def inloop_uitloop_stans(df, wikkel, etiket_y, kolomnaam_vervang_waarde):
     return indat
 
 
+def maak_meerdere_vdps(banen_gemaakt_uit_eerste_df, mes, aantal_vdps, ordernummer, pad, sluitbarcode_uitvul_waarde_getal, etiket_y,dummylijst=[]):
+    """bouwt vdps #todo  voeg de dummylijst hier meteen aan het einde van de lijst toe zodat we uitkomen"""
+    # maak een lijst van lijsten
+    #todo check of dit ook voor 1 vdp werkt
 
+
+    # banen_met_reset_index.columns = kolomnamen
+    te_gebruiken_lijst = banen_gemaakt_uit_eerste_df + dummylijst
+
+    lijst_van_vdps_in_lijsten = lijst_opbreker(te_gebruiken_lijst, mes, aantal_vdps)
+
+    for count, de_te_maken_vdp in enumerate(lijst_van_vdps_in_lijsten):
+        vdp_naam_csv = pad.joinpath(f"{ordernummer} VDP {count + 1}.csv")
+        print(vdp_naam_csv)
+
+        banen_met_reset_index = pd.concat(de_te_maken_vdp, axis=1)
+
+        kolomnamen = headers_for_totaal_kolommen(de_te_maken_vdp[0], mes)
+        banen_met_reset_index.columns = kolomnamen
+
+
+        vervang_beeld_stans = filna_dict("beeld", "stans.pdf", mes)
+        vervang_sluitean_ = filna_dict("sluitbarcode", sluitbarcode_uitvul_waarde_getal, mes)
+        vervang_sluitean_.update(vervang_beeld_stans)
+        ic(sluitbarcode_uitvul_waarde_getal)
+        nieuwe_df = banen_met_reset_index.fillna(value=vervang_sluitean_)
+        inloop_uitloop_stans(nieuwe_df, aantal_vdps, etiket_y,
+                             list(vervang_beeld_stans.keys())).to_csv(vdp_naam_csv, index=0)
+
+
+    return 0

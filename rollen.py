@@ -39,7 +39,6 @@ def rol_cq_regel_uitwerker(regel, wikkel, posities_sluitbarcode=8, extra_etikett
 
 
 
-pdf_sluitetiket = True
 
 def overlevering():
     ...
@@ -47,28 +46,30 @@ def overlevering():
 
 
 
-def rol_beeld_is_pdf_uit_excel(regel,wikkel, overlevering=0):
+def rol_beeld_is_pdf_uit_excel(regel,wikkel, overlevering=0, pdf_sluitetiket=True):
+
     """het idee is om de inputlijst completer te maken,
-    sluitetiket is een pdf ,wikkel_formule kan worden toegepast op (hoogte x aantal)
-    kolomen blijven identiek zodat het backwards compatible blijft
+    sluitetiket is een pdf (DAN GEEN SLUITBARCODE NODIG IN LIJST)
+    ,wikkel_formule kan worden toegepast op (hoogte x aantal)
+    kolommen blijven identiek zodat het backwards compatible blijft
     """
     columns = ["beeld", "omschrijving"]
-
+    columns = ["beeld", "omschrijving", "Artnr", "sluitbarcode"]
 
     aantal = int(regel.aantal) + overlevering
 
     rol_vulling = pd.DataFrame(
-        [(f'{regel.beeld}', "")
+        [(f'{regel.beeld}', "","","")
          for x in range(aantal) for i in range(1)], columns=columns)
 
     if pdf_sluitetiket is True:
 
         sluitetiket =  pd.DataFrame(
-            [(f'{regel.sluitbeeld}', "")
+            [(f'{regel.sluitbeeld}', "","","")
              for x in range(1) for i in range(1)], columns=columns)
     else:
         sluitetiket =  pd.DataFrame(
-            [("leeg.pdf", f'{regel.omschrijving} |  {regel.aantal} etiketten')
+            [("leeg.pdf", f'{regel.omschrijving} |  {regel.aantal} etiketten',"","")
              for x in range(1) for i in range(1)], columns=columns)
 
     wikkel_om_rol = pd.DataFrame(
@@ -87,13 +88,29 @@ def rol_beeld_is_pdf_uit_excel(regel,wikkel, overlevering=0):
     return rol
 
 
+def dummy_rol_is_baan(regel,gemiddelde_aantal,pdf_sluitetiket=True):
+    columns = ["beeld", "omschrijving", "Artnr", "sluitbarcode"]
 
+    aantal = gemiddelde_aantal
+
+    if pdf_sluitetiket != True:
+
+        rol_vulling = pd.DataFrame(
+            [(f'{regel.beeld}', "dummy_Baan", "", "met sluitbarcode ligt aan welke rol funct gekozen wordt")
+             for x in range(aantal) for i in range(1)], columns=columns)
+        return 0
+
+    else:
+        rol_vulling = pd.DataFrame(
+            [(f'{regel.beeld}', "dummy_BAAN", "", "zonder sluitbarcode ligt aan welke rol funct gekozen wordt")
+             for x in range(aantal) for i in range(1)], columns=columns)
+        return 0
 
 
 
 rolstandaardtest= file_to_generator(r"C:\Users\Dhr. Ten Hoonte\PycharmProjects\df_naar_csv\rollen\standaard_aanlever_excel.xlsx")
 # rolstandaardtest= file_to_generator(r"C:\Users\Dhr. Ten Hoonte\PycharmProjects\df_naar_csv\rollen\202175361 85x35 veelvoud rv1000_verveel_vuldigd_.xlsx")
-rolstandaardtest= file_to_generator(r"C:\Users\Dhr. Ten Hoonte\PycharmProjects\df_naar_csv\rollen\202175361 85x35 veelvoud rv2500_verveel_vuldigd_.xlsx")
+# rolstandaardtest= file_to_generator(r"C:\Users\Dhr. Ten Hoonte\PycharmProjects\df_naar_csv\rollen\202175361 85x35 veelvoud rv2500_verveel_vuldigd_.xlsx")
 excel_in_dataframe = rolstandaardtest.itertuples(index=0)
 # regel1 = [x for x in itertools.islice(excel_in_dataframe,0,1)]
 
@@ -119,32 +136,8 @@ slice = summary_splitter_df_2(rolstandaardtest,8,10)
 baangenerator = rolstandaardtest.itertuples(index=0)
 kolommen = list(rolstandaardtest.columns)
 
-banen=[]
-
-for slices in slice:
-    baangenerator = rolstandaardtest.itertuples(index=0)
-    beginslice = slices[0]
-    eindslice = slices[1]
-    print(slices, beginslice,eindslice)
-
-    baan = [x for x in itertools.islice(baangenerator, beginslice, eindslice)]
-
-    baandf = pd.DataFrame(baan)
-    spec_cols=['aantal', 'hoogte', 'Omschrijving', 'sluitbarcode', 'beeld']
-    baandf_usespeccols = baandf[spec_cols]
-
-    totaal = baandf.aantal.sum()
-
-    header = pd.DataFrame([[f'{totaal} etiketten in baan', "hoogte", "Omschrijving", "sluitbarcode", "beeld"] for x in range(1)], columns=spec_cols)
-    #
-    #
-    banen.append(header)
-    banen.append(baandf_usespeccols)
 
 
-
-samen = pd.concat(banen)
-samen.to_excel("sum2500.xlsx")
 
 
 
