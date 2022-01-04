@@ -245,12 +245,12 @@ def banen_in_vdp_check(aantalbanen, daadwerkelijk_gemaakte_banen):
     else:
         if aantalbanen> daadwerkelijk_gemaakte_banen:
             dummybanen = aantalbanen-daadwerkelijk_gemaakte_banen
-            print(f'{aantalbanen-daadwerkelijk_gemaakte_banen} te veel dus opnieuw berekenen')
+            print(f'{aantalbanen-daadwerkelijk_gemaakte_banen} te weinig dus opnieuw berekenen')
             print(f'maak {dummybanen} lege dummybanen')
             return False,dummybanen
         else:
             dummybanen = daadwerkelijk_gemaakte_banen-aantalbanen
-            print(f'{daadwerkelijk_gemaakte_banen-aantalbanen} te weinig voeg lege baan(banen) toe')
+            print(f'{daadwerkelijk_gemaakte_banen-aantalbanen} te veel?weinig? voeg lege baan(banen) toe')
             print(f'maak {dummybanen} lege dummybanen')
             return False,dummybanen
 
@@ -281,24 +281,30 @@ def maak_een_dummy_baan(dummy_baan_generator, gemiddelde, aantal_dummy_banen):
      gebruik generator zodat je de juiste headers hebt en gemiddelde
      voor de juiste waarden
          """
+    kolomnamen = list(dummy_baan_generator.columns)
+    ic(kolomnamen)
     # vervang beeld waarde voor stans.pdf of leeg.pdf
     dummy_baan_generator['beeld'] ="stans.pdf"
     dummy_baan_generator['sluitbeeld'] ="leeg.pdf"
 
+    ic(dummy_baan_generator)
 
-    dummy_lijst_generator = dummy_baan_generator.itertuples()
-    dummy_banen = []
-    for baan in dummy_lijst_generator:
-        for i in range(gemiddelde):
-            dummy_banen.append(dummy_rol_is_baan(baan,gemiddelde,pdf_sluitetiket=True))
+    def bouwertje(generator,x):
+        nieuwe_df=[]
+        for rows in generator:
+            for i in range(2):
+                nieuwe_df.append([rows])
 
-    # haal benodigde aantal dummy banen uit lijst dummy banen
-    dummy_lijst_voor_baan = dummy_banen[:aantal_dummy_banen]    # uit deze lijst halen we het aantal benodigde dummy banen( 1 regel word 1 baan)
-    ic(dummy_lijst_voor_baan)
+    # stap1 haal uit Dataframe  de regels voor de dummys # stap2 maak een nieuwe itertuples() hiermee
+    db = dummy_baan_generator[0:aantal_dummy_banen].itertuples()
+    print(db)
+
+    # verwerkte_file_in = pd.DataFrame(nieuwe_df)
+    dummy_lijst_voor_baan=[dummy_rol_is_baan(regel,gemiddelde,pdf_sluitetiket=True) for regel in db]
+    ic(dummy_lijst_voor_baan[0].columns)
 
 
-
-    return (dummy_lijst_voor_baan,len(dummy_lijst_voor_baan))
+    return  dummy_lijst_voor_baan, len(dummy_lijst_voor_baan)
 
 
 

@@ -227,19 +227,29 @@ while True:
 
 
             banen_gemaakt = len(banen_gemaakt_uit_eerste_df)
+            ic(banen_gemaakt)
+            ic(aantalbanen)
 
             ##### dummybanen maken
             dummybanen_bool, aantal_dummy_banen =banen_in_vdp_check(aantalbanen, banen_gemaakt)
-            if dummybanen_bool != True:
+
+            if dummybanen_bool == True:
                 dummy_banen_zijn = []
-                #break
-            elif dummybanen_bool == True:
+                print(f"{dummybanen_bool} geen dummybanen maken")
+
+            elif dummybanen_bool == False:
                 de_te_verwerken_naar_dummydataframe = file_to_generator(name_file_in)
 
-                dummy_banen_zijn = maak_een_dummy_baan(de_te_verwerken_naar_dummydataframe,
+                dummy_banen_zijn, aantal_dummy_banen = maak_een_dummy_baan(de_te_verwerken_naar_dummydataframe,
                                                        gemiddelde,
                                                        aantal_dummy_banen)
                 print("dummybanen maken")
+                # dummy_banen_zijn = []
+
+
+
+            banen_gemaakt_uit_eerste_df = banen_gemaakt_uit_eerste_df + dummy_banen_zijn
+
 
             if aantal_vdps == 1:
                 wdir= name_file_in
@@ -325,6 +335,11 @@ while True:
 
 
             aantal_rollen, kolommen = de_te_verwerken_dataframe.shape
+            if dummybanen_bool == True:
+                dbanen = 0
+            else:
+                dbanen = f'{aantal_dummy_banen}'
+
 
             keywordargs = {
                 "Ordernummer: ": ordernummer,
@@ -342,6 +357,9 @@ while True:
                 "Inloop en uitloop": f"{etiket_y} x 10 sheets.",
                 # 'De files staan hier': naar_folder_pad,
                 "Opmerkingen": opmerkingen,
+                "Lege banen in laatste VDP" : dbanen
+
+
 
                 # " datafr": 0}
             }
