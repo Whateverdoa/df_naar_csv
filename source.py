@@ -7,7 +7,8 @@ import pandas as pd
 from calculations import *
 from summary import (summary_splitter_df_2,
                      html_sum_form_writer,
-                     df_sum_met_slice)
+                     df_sum_met_slice,
+                     df_sum_form_writer)
 
 
 while True:
@@ -306,40 +307,11 @@ while True:
 
 
             #################SUMMARY ########################
-
-            summary_file_uit_excel = summary_splitter_df_2(de_te_verwerken_dataframe,
-                                                     mes=mes,
-                                                     aantalvdps=aantal_vdps,
-                                                     sluitbarcode_posities=sluitbarcode_posities,
-                                                     afwijking_waarde=afwijkings_waarde,
-                                                     wikkel=wikkel,
-                                                     gemiddelde=None)
-
-            lengte_summary_df = len(summary_file_uit_excel)
-            lijst_van_sumary_lijsten = lijst_opbreker(summary_file_uit_excel,mes,aantal_vdps)
-
-            # if vdp==1:
-            #     summary_vdp1 =df_sum_met_slice(de_te_verwerken_dataframe, summary_file_uit_excel, 1)
-            #     summary_vdp1.to_excel(pad.joinpath(f'{name_file_in.stem}_summary_VDP_1.xlsx'))
-            #
-            # elif vdp > 1:
-            #     for count,lijst in enumerate(lijst_van_sumary_lijsten,1):
-            #         df_sum_met_slice(de_te_verwerken_dataframe,lijst,count)
-
-
-
-
-
-
-
-
-
             aantal_rollen, kolommen = de_te_verwerken_dataframe.shape
             if dummybanen_bool == True:
                 dbanen = 0
             else:
                 dbanen = f'{aantal_dummy_banen}'
-
 
             keywordargs = {
                 "Ordernummer: ": ordernummer,
@@ -357,14 +329,50 @@ while True:
                 "Inloop en uitloop": f"{etiket_y} x 10 sheets.",
                 # 'De files staan hier': naar_folder_pad,
                 "Opmerkingen": opmerkingen,
-                "Lege banen in laatste VDP" : dbanen
-
-
-
+                "Lege banen in laatste VDP": dbanen
                 # " datafr": 0}
             }
 
+            summary_file_uit_excel = summary_splitter_df_2(de_te_verwerken_dataframe,
+                                                     mes=mes,
+                                                     aantalvdps=aantal_vdps,
+                                                     sluitbarcode_posities=sluitbarcode_posities,
+                                                     afwijking_waarde=afwijkings_waarde,
+                                                     wikkel=wikkel,
+                                                     gemiddelde=None)
+
+            lengte_summary_df = len(summary_file_uit_excel)
+            lijst_van_sumary_lijsten = lijst_opbreker(summary_file_uit_excel,mes,aantal_vdps)
+
+            sum_df_args= df_sum_form_writer(**keywordargs)
+
+            if aantal_vdps==1:
+                summary_vdp1 =df_sum_met_slice(de_te_verwerken_dataframe, summary_file_uit_excel, 1)
+                sum_1 = pd.concat([summary_vdp1,sum_df_args])
+
+                sum_1.to_excel(pad.joinpath(f'{name_file_in.stem}_inclusief_summary_VDP.xlsx'), index=0)
+                summary_vdp1.to_excel(pad.joinpath(f'{name_file_in.stem}_summary_VDP.xlsx'), sheet_name="VDP summary", index=0)
+                # sum_1.to_excel(pad.joinpath(f'{name_file_in.stem}_summary_VDP.xlsx'), sheet_name="sheet2", index=0)
+
+            elif aantal_vdps > 1:
+                sum_lijst=[]
+                for count,lijst in enumerate(lijst_van_sumary_lijsten,1):
+                    sum_lijst.append(df_sum_met_slice(de_te_verwerken_dataframe,lijst,count))
+
+                summary = pd.concat([df for df in sum_lijst])
+                summary.to_excel(pad.joinpath(f'{name_file_in.stem}_summary_VDP.xlsx'), index=0)
+
+
+
+
+
+
+
             html_sum_form_writer(pad, ordernummer, **keywordargs)
+
+
+
+
 
 
 

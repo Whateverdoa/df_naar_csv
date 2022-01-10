@@ -66,6 +66,7 @@ def summary_splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afw
 
 def df_sum_met_slice(de_te_gebruiken_dataframe, functie_splitter_tuple_lijst_maker, numvdp=1):
     ''''voorals nog moet aanwezig zijn: aantal', 'hoogte', 'Omschrijving', 'sluitbarcode', 'beeld'''
+    """#todo gebruik gewoon dataframe slices"""
     slice = functie_splitter_tuple_lijst_maker
     banen = []
     kolommen = list(de_te_gebruiken_dataframe.columns)
@@ -79,12 +80,12 @@ def df_sum_met_slice(de_te_gebruiken_dataframe, functie_splitter_tuple_lijst_mak
         baan = [x for x in itertools.islice(baangenerator, beginslice, eindslice)]
 
         baandf = pd.DataFrame(baan)
-        spec_cols=['aantal', 'hoogte', 'Omschrijving', 'sluitbarcode', 'beeld','VDP']
+        spec_cols=['aantal', 'hoogte', 'Omschrijving', 'sluitbarcode', 'beeld']
         baandf_usespeccols = baandf[spec_cols]
 
         totaal = baandf.aantal.sum()
 
-        header = pd.DataFrame([[f'{totaal} etiketten in baan', "hoogte", "Omschrijving", "sluitbarcode", "beeld",f"VDP_{numvdp}"] for x in range(1)], columns=spec_cols)
+        header = pd.DataFrame([[f'{totaal} etiketten in baan', "hoogte", "beeld",f"VDP_{numvdp}", "sluitbarcode", ] for x in range(1)], columns=spec_cols)
         #
         #
         banen.append(header)
@@ -93,6 +94,7 @@ def df_sum_met_slice(de_te_gebruiken_dataframe, functie_splitter_tuple_lijst_mak
 
 
     samen = pd.concat(banen)
+    #todo  maak de html_sum form writer zo dat ie een df maakt net de 4 noodzakelijke headers
     # samen.to_excel("sum2500.xlsx")
     return samen
 
@@ -106,6 +108,7 @@ def html_sum_form_writer(user_designated_file_path, titel="summary", **kwargs):
         print(key, value)
 
     naam_html_file = f"{user_designated_file_path}/{titel}.html"
+
     with open(naam_html_file, "w") as f_html:
 
         #         for key, value in kwargs.items():
@@ -125,3 +128,36 @@ def html_sum_form_writer(user_designated_file_path, titel="summary", **kwargs):
         print(" </html>", file=f_html)
 
 
+def df_sum_form_writer(**kwargs):
+
+    """user_designated_file_path, titel="summary",
+     "build a df file for summary purposes with  *kwargv
+     """
+    for key, value in kwargs.items():
+        print(key, value)
+
+    # sum_dik = {key: value in kwargs.items()}
+    sum_dik = {key: [key,value] for (key, value) in kwargs.items()}
+    df_summary = pd.DataFrame.from_dict(sum_dik, orient="index")
+
+
+    # naam_html_file = f"{user_designated_file_path}/{titel}.html"
+
+    # with open(naam_html_file, "w") as f_html:
+    #
+    #     #         for key, value in kwargs.items():
+    #     #             print(key, value)
+    #
+    #     print("<!DOCTYPE html>\n", file=f_html)
+    #     print('<html lang = "en">\n', file=f_html)
+    #     print("     <head>\n", file=f_html)
+    #     print("<meta charset='UTF-8>'\n", file=f_html)
+    #     # print(f"<title>{titel.capitalize()}</title>\n", file=f_html)
+    #     print("     </head>", file=f_html)
+    #     print("         <body>", file=f_html)
+    #     for key, value in kwargs.items():
+    #         print(f" <p><b>{key}</b> : {value}<p/>", file=f_html)
+    #
+    #     print("         </body>", file=f_html)
+    #     print(" </html>", file=f_html)
+    return df_summary
