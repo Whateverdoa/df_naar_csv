@@ -42,8 +42,8 @@ while True:
                 layout=[
                     # [
                     #     sg.Checkbox(
-                    #         "gebruik template bij sscc, 1 extra '?' toevoegen voor de cd",
-                    #         key="gebruik_template",
+                    #         "sluit etiket sluitpdf",
+                    #         key="gebruik_pdf als sluit etiket",
                     #         default=False,
                     #     )
                     # ],
@@ -260,7 +260,7 @@ while True:
                 kolomnamen = headers_for_totaal_kolommen(banen_gemaakt_uit_eerste_df[0], mes)
                 banen_met_reset_index.columns = kolomnamen
 
-                vervang_beeld_stans = filna_dict("beeld", "stans.pdf", mes)
+                vervang_beeld_stans = filna_dict("pdf", "stans.pdf", mes)
                 vervang_sluitean_ = filna_dict("sluitbarcode", sluitbarcode_uitvul_waarde_getal, mes)
 
                 vervang_sluitean_.update(vervang_beeld_stans)

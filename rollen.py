@@ -1,8 +1,28 @@
 import pandas as pd
-from calculations import file_to_generator
+
 from summary import *
 
 import itertools
+
+def file_to_generator(file_in):
+    """Builds from a workable csv or excel file a Dataframe
+     on which to Generate with itertuples or ...."""
+
+    if Path(file_in).suffix == ".csv":
+        # extra arg = ";"or ","
+
+        file_to_generate_on = pd.read_csv(file_in, ";")
+        return file_to_generate_on
+
+    elif Path(file_in).suffix == ".xlsx":
+        # print(Path(file_in).suffix)
+        file_to_generate_on = pd.read_excel(file_in, engine='openpyxl')
+        return file_to_generate_on
+
+    elif Path(file_in).suffix == ".xls":
+        # print(Path(file_in).suffix)
+        file_to_generate_on = pd.read_excel(file_in)
+        return file_to_generate_on
 
 def rol_cq_regel_uitwerker(regel, wikkel, posities_sluitbarcode=8, extra_etiketten =5):
     """maakt een dataframe van de regel met kolommen uit df
@@ -16,7 +36,7 @@ def rol_cq_regel_uitwerker(regel, wikkel, posities_sluitbarcode=8, extra_etikett
     # print(f'{regel.aantal =}')  # , regel.Artnr, regel.beeld, regel.ColorC
 
     rol_vulling = pd.DataFrame(
-        [(f'{regel.beeld}', "", "",f"{regel.sluitbarcode:>{0}{posities_sluitbarcode}}")
+        [(f'{regel.beeld}', "", f"{regel.Artnr}", f"{regel.sluitbarcode:>{0}{posities_sluitbarcode}}")
          for x in range(aantal) for i in range(1)], columns=columns)
 
     sluit = pd.DataFrame([('leeg.pdf',
@@ -46,34 +66,34 @@ def overlevering():
 
 
 
-def rol_beeld_is_pdf_uit_excel(regel,wikkel, overlevering=0, pdf_sluitetiket=True):
+def rol_beeld_is_pdf_uit_excel(regel,wikkel, posities_sluitbarcode=8, extra_etiketten =5, pdf_sluitetiket=True):
 
     """het idee is om de inputlijst completer te maken,
     sluitetiket is een pdf (DAN GEEN SLUITBARCODE NODIG IN LIJST)
     ,wikkel_formule kan worden toegepast op (hoogte x aantal)
     kolommen blijven identiek zodat het backwards compatible blijft
     """
-    columns = ["beeld", "omschrijving"]
+    # columns = ["beeld", "omschrijving"]
     columns = ["beeld", "omschrijving", "Artnr", "sluitbarcode"]
 
-    aantal = int(regel.aantal) + overlevering
+    aantal = int(regel.aantal) + extra_etiketten
 
     rol_vulling = pd.DataFrame(
-        [(f'{regel.beeld}', "","","")
+        [(f'{regel.beeld}', "",f"{regel.Artnr}",f"{regel.sluitbarcode:>{0}{posities_sluitbarcode}}")
          for x in range(aantal) for i in range(1)], columns=columns)
 
     if pdf_sluitetiket is True:
 
         sluitetiket =  pd.DataFrame(
-            [(f'{regel.sluitbeeld}', "","","")
+            [(f'{regel.sluitbeeld}', "","",f"{regel.sluitbarcode:>{0}{posities_sluitbarcode}}")
              for x in range(1) for i in range(1)], columns=columns)
     else:
         sluitetiket =  pd.DataFrame(
-            [("leeg.pdf", f'{regel.omschrijving} |  {regel.aantal} etiketten',"","")
+            [("leeg.pdf", f'{regel.Omschrijving} |  {regel.aantal} etiketten',"",f"{regel.sluitbarcode:>{0}{posities_sluitbarcode}}")
              for x in range(1) for i in range(1)], columns=columns)
 
     wikkel_om_rol = pd.DataFrame(
-        [('stans.pdf', "") for x in range(wikkel) for i in
+        [('stans.pdf', "","",f"{regel.sluitbarcode:>{0}{posities_sluitbarcode}}") for x in range(wikkel) for i in
          range(1)],
         columns=columns)
 
@@ -85,7 +105,7 @@ def rol_beeld_is_pdf_uit_excel(regel,wikkel, overlevering=0, pdf_sluitetiket=Tru
 
                     ])
 
-    return rol
+    return rol, aantal
 
 
 def dummy_rol_is_baan(regel,gemiddelde_aantal,pdf_sluitetiket=True):
@@ -132,9 +152,9 @@ def rol_summary(regel, num):
     return summary_rol
 
 
-slice = summary_splitter_df_2(rolstandaardtest,8,10)
-baangenerator = rolstandaardtest.itertuples(index=0)
-kolommen = list(rolstandaardtest.columns)
+# slice = summary_splitter_df_2(rolstandaardtest,8,10)
+# baangenerator = rolstandaardtest.itertuples(index=0)
+# kolommen = list(rolstandaardtest.columns)
 
 
 

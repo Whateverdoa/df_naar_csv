@@ -2,6 +2,7 @@ import itertools
 from pathlib import Path
 import pandas as pd
 # from rollen import dummy_rol_is_baan
+from rollen import rol_beeld_is_pdf_uit_excel,rol_cq_regel_uitwerker
 
 
 from openpyxl import load_workbook
@@ -124,7 +125,7 @@ def rol_cq_regel_uitwerker(regel, wikkel, posities_sluitbarcode=8, extra_etikett
      waar ik in kan slicen"""
     aantal = int(regel.aantal)  # + int (extra_etiketten)
     artnummer = regel.Artnr
-    columns = ["beeld", "omschrijving", "Artnr", "sluitbarcode"]
+    columns = ["pdf", "omschrijving", "Artnr", "sluitbarcode"]
 
     # print(f'{regel.aantal =}')  # , regel.Artnr, regel.beeld, regel.ColorC
 
@@ -210,7 +211,8 @@ def splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afwijking_w
 
     for num, regel in enumerate(df_in.itertuples(index=0), 1):
 
-        df_regel, df_regel_aantal = rol_cq_regel_uitwerker(regel, wikkel, sluitbarcode_posities, extra_etiketten)
+        # df_regel, df_regel_aantal = rol_cq_regel_uitwerker(regel, wikkel, sluitbarcode_posities, extra_etiketten)
+        df_regel, df_regel_aantal = rol_beeld_is_pdf_uit_excel(regel, wikkel,  sluitbarcode_posities, extra_etiketten=0, pdf_sluitetiket=True)
 
         dataframe_lijst.append(df_regel)
         aantal_lijst.append((df_regel_aantal))
@@ -443,7 +445,7 @@ def maak_meerdere_vdps(banen_gemaakt_uit_eerste_df, mes, aantal_vdps, ordernumme
         banen_met_reset_index.columns = kolomnamen
 
 
-        vervang_beeld_stans = filna_dict("beeld", "stans.pdf", mes)
+        vervang_beeld_stans = filna_dict("pdf", "stans.pdf", mes)
         vervang_sluitean_ = filna_dict("sluitbarcode", sluitbarcode_uitvul_waarde_getal, mes)
         vervang_sluitean_.update(vervang_beeld_stans)
         ic(sluitbarcode_uitvul_waarde_getal)
