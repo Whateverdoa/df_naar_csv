@@ -93,19 +93,20 @@ while True:
                     # ],
                     [
                         sg.Radio(
-                            "NL",
+                            "PDF sluitetiket",
                             "RADIO1",
+
                             key="radio",
                             default=True,
-                            size=(5, 1),
+                            size=(20, 1),
                         ),
-                        sg.Radio("Duits", "RADIO1"),
+                        sg.Radio("sluitetiketten old", "RADIO1"),
                     ],
                 ],
                 title="Options",
                 title_color="red",
                 relief=sg.RELIEF_SUNKEN,
-                tooltip="taal voor sluitetiket",
+                tooltip="keuze mogelijkheid sluitetiket",
             )
         ],
 
@@ -181,6 +182,8 @@ while True:
 
             opmerkingen = str(values['opmerkingen'])
             # wikkel = int(values['wikkel'])
+            soortsluit_etiket= values['radio']
+            print(f'{soortsluit_etiket=}')
 
             # todo try except
             # atribute error als er geen excel gekozen is na load e
@@ -218,7 +221,9 @@ while True:
                                                      sluitbarcode_posities=sluitbarcode_posities,
                                                      afwijking_waarde=afwijkings_waarde,
                                                      wikkel=wikkel,
-                                                     gemiddelde=None
+                                                     gemiddelde=None,
+                                                     pdf_sluitetiket=soortsluit_etiket
+
                                                      )
 
 
