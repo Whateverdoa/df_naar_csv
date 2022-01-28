@@ -117,13 +117,13 @@ def dummy_rol_is_baan(regel,gemiddelde_aantal,pdf_sluitetiket=True):
     if pdf_sluitetiket != True:
 
         rol_vulling = pd.DataFrame(
-            [(f'{regel.beeld}', "dummy_Baan", "", "met sluitbarcode ligt aan welke rol funct gekozen wordt")
+            [(f'{regel.beeld}', "dummy_Baan", "", 0)
              for x in range(aantal) for i in range(1)], columns=columns)
         return 0
 
     else:
         rol_vulling = pd.DataFrame(
-            [(f'{regel.beeld}', "dummy_BAAN", "", "zonder sluitbarcode ligt aan welke rol funct gekozen wordt")
+            [(f'{regel.beeld}', "dummy_BAAN", "", 0)
              for x in range(aantal) for i in range(1)], columns=columns)
         return 0
 

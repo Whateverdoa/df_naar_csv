@@ -196,16 +196,12 @@ def splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afwijking_w
     kolomnamen = list(df_in.columns)
 
     aantal_rollen, kolommen = df_in.shape
-    totaal = int(df_in.aantal.sum())
-    if gemiddelde is None:
-        gemiddelde = (totaal // (mes * aantalvdps)) - afwijking_waarde
-    else:
-        gemiddelde = gemiddelde - afwijking_waarde
-        # @ todo deze gemiddelde word nooit gebruikt?
-    # gemiddelde = df_in.aantal.median()
-    print(f'{gemiddelde = } met {afwijking_waarde}',f'{ aantal_rollen =}')
+    totaal_aantal = int(df_in.aantal.sum())
+    gemiddelde = (totaal_aantal // (mes * aantalvdps)) - afwijking_waarde
 
-    dataframes_gesplitst=[]
+    print(f'{gemiddelde = } met {afwijking_waarde}', f'{ aantal_rollen =}')
+
+    dataframes_gesplitst = []
     dataframe_lijst = []
     aantal_lijst = []
 
@@ -244,6 +240,7 @@ def banen_in_vdp_check(aantalbanen, daadwerkelijk_gemaakte_banen):
     if aantalbanen == daadwerkelijk_gemaakte_banen:
         print(" doorgaan ")
         return True,0
+    #todo test maken : check te veel te weinig
     else:
         if aantalbanen> daadwerkelijk_gemaakte_banen:
             dummybanen = aantalbanen-daadwerkelijk_gemaakte_banen
@@ -265,13 +262,13 @@ def dummy_rol_is_baan(regel,gemiddelde_aantal,pdf_sluitetiket=True):
     if pdf_sluitetiket != True:
 
         rol_vulling = pd.DataFrame(
-            [(f'{regel.beeld}', "dummy_Baan", "", "met sluitbarcode ligt aan welke rol funct gekozen wordt")
+            [(f'{regel.beeld}', "dummy_Baan", "", 0)
              for x in range(aantal) for i in range(1)], columns=columns)
         return rol_vulling
 
     else:
         rol_vulling = pd.DataFrame(
-            [(f'{regel.beeld}', "dummy_BAAN", "", "zonder sluitbarcode ligt aan welke rol funct gekozen wordt")
+            [(f'{regel.beeld}', "dummy_BAAN", "", 0)
              for x in range(aantal) for i in range(1)], columns=columns)
         return rol_vulling
 
@@ -299,7 +296,7 @@ def maak_een_dummy_baan(dummy_baan_generator, gemiddelde, aantal_dummy_banen):
 
     # stap1 haal uit Dataframe  de regels voor de dummys # stap2 maak een nieuwe itertuples() hiermee
     db = dummy_baan_generator[0:aantal_dummy_banen].itertuples()
-    print(db)
+    print(f'{db=}')
 
     # verwerkte_file_in = pd.DataFrame(nieuwe_df)
     dummy_lijst_voor_baan=[dummy_rol_is_baan(regel,gemiddelde,pdf_sluitetiket=True) for regel in db]
@@ -382,7 +379,7 @@ def inloop_uitloop_stans(df, wikkel, etiket_y, kolomnaam_vervang_waarde):
     nieuwe_df = []
 
     sluitetiket = pd.DataFrame(
-        [x for x in itertools.islice(generator, 4, 5)]
+        [x for x in itertools.islice(generator, 1, 3)] # if wikkel =1 else???/
     )
     ic(sluitetiket)
     # sluitetiket2= pd.DataFrame(

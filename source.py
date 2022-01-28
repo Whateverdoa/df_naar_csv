@@ -12,12 +12,12 @@ from summary import (summary_splitter_df_2,
 
 
 while True:
-    sg.change_look_and_feel('DefaultNoMoreNagging')
+    sg.change_look_and_feel('dark')
 
     columns = []
     font = ('Arial', 10)
     layout = [
-        [sg.Text("Excel naar VDP's ombouw", size=(30, 1), font=('Arial', 14, 'bold'), text_color="darkblue")],
+        [sg.Text("Excel naar csv-vdp", size=(30, 1), font=('Arial', 14, 'bold'), text_color="white")],
         [sg.InputText('202012345', key='ordernummer_1'), sg.Text('Ordernummer', font=font)],
         [sg.InputText('4', key='mes'), sg.Text('mes', font=font)],
         [sg.InputText('7 ', key='vdp_aantal'), sg.Text("VDP's", font=font)],
@@ -137,7 +137,11 @@ while True:
     while True:
         event, values = window.read()
 
-        #todo make OS proof with try except
+        # todo make OS proof with try except
+        # todo AttributeError: 'NoneType' object has no attribute 'head'
+        # todo PermissionError: [Errno 13] Permission denied:
+        #  'C:\\Users\\mike\\PycharmProjects\\df_naar_csv\\test_excel\\
+        #  standaard_aanlever_excel t_summary_VDP.xlsx'
 
         if event in ('Exit', None):
 
@@ -171,7 +175,7 @@ while True:
 
             afwijkings_waarde = int(values['afwijkings_waarde'])
 
-            sluitbarcode_uitvul_waarde= int(values['sluitbarcode_uitvul_waarde'])
+            sluitbarcode_uitvul_waarde = int(values['sluitbarcode_uitvul_waarde'])
             sluitbarcode_posities = int(values['posities_sluitbarcode_uitvul_waarde'])
             sluitbarcode_uitvul_waarde_getal = f"{sluitbarcode_uitvul_waarde:>{0}{sluitbarcode_posities}}"
 
@@ -193,7 +197,7 @@ while True:
             if wikkel_handmatig:
                 wikkel = int(values["wikkel_handmatige_invoer"])  # handmatige wikkel
             else:
-                #todo max rol waarde halen uit dataframe
+                # todo max rol waarde halen uit dataframe
                 # aantal_per_rol = de max aantalperrol in de lijst
                 aantal_per_rol=10
                 wikkel = de_uitgerekenende_wikkel(aantal_per_rol, hoogte, kern)
@@ -213,7 +217,10 @@ while True:
 
             aantalbanen = aantal_vdps * mes
             totaal_aantal = int(de_te_verwerken_dataframe.aantal.sum())
-            gemiddelde = (totaal_aantal // (mes * aantal_vdps)) - afwijkings_waarde
+            if afwijkings_waarde!=0:
+                gemiddelde = (totaal_aantal // (mes * aantal_vdps)) - afwijkings_waarde
+            else:
+                gemiddelde = 0
 
             de_gemaakte_df_uit_excel = splitter_df_2(de_te_verwerken_dataframe,
                                                      mes=mes,
@@ -223,9 +230,7 @@ while True:
                                                      wikkel=wikkel,
                                                      gemiddelde=None,
                                                      pdf_sluitetiket=soortsluit_etiket
-
                                                      )
-
 
             #stap 2 verdeel de lijst over een x(vdps * mes) aantal banen
             banen_gemaakt_uit_eerste_df = [pd.concat(de_gemaakte_df_uit_excel[x]).reset_index(drop=True)
@@ -237,7 +242,7 @@ while True:
             ic(aantalbanen)
 
             ##### dummybanen maken
-            dummybanen_bool, aantal_dummy_banen =banen_in_vdp_check(aantalbanen, banen_gemaakt)
+            dummybanen_bool, aantal_dummy_banen = banen_in_vdp_check(aantalbanen, banen_gemaakt)
 
             if dummybanen_bool == True:
                 dummy_banen_zijn = []
@@ -247,8 +252,8 @@ while True:
                 de_te_verwerken_naar_dummydataframe = file_to_generator(name_file_in)
 
                 dummy_banen_zijn, aantal_dummy_banen = maak_een_dummy_baan(de_te_verwerken_naar_dummydataframe,
-                                                       gemiddelde,
-                                                       aantal_dummy_banen)
+                                                                           gemiddelde,
+                                                                           aantal_dummy_banen)
                 print("dummybanen maken")
                 # dummy_banen_zijn = []
 

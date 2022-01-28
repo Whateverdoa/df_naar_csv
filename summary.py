@@ -80,12 +80,12 @@ def df_sum_met_slice(de_te_gebruiken_dataframe, functie_splitter_tuple_lijst_mak
         baan = [x for x in itertools.islice(baangenerator, beginslice, eindslice)]
 
         baandf = pd.DataFrame(baan)
-        spec_cols=['aantal', 'hoogte', 'Omschrijving', 'sluitbarcode', 'beeld']
+        spec_cols=['aantal', 'Omschrijving', 'sluitbarcode', 'beeld'] #, 'hoogte'
         baandf_usespeccols = baandf[spec_cols]
 
         totaal = baandf.aantal.sum()
-
-        header = pd.DataFrame([[f'{totaal} etiketten in baan', "hoogte", "beeld",f"VDP_{numvdp}", "sluitbarcode", ] for x in range(1)], columns=spec_cols)
+        #todo baan nummers
+        header = pd.DataFrame([[f'{totaal} etiketten in baan', "Omschrijving",f"VDP_{numvdp}", "beeld", ] for x in range(1)], columns=spec_cols) #, "hoogte"
         #
         #
         banen.append(header)
