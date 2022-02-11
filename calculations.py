@@ -197,9 +197,9 @@ def splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afwijking_w
 
     aantal_rollen, kolommen = df_in.shape
     totaal_aantal = int(df_in.aantal.sum())
-    gemiddelde = (totaal_aantal // (mes * aantalvdps)) - afwijking_waarde
+    gemiddelde = (totaal_aantal // (mes * aantalvdps)) + afwijking_waarde
 
-    print(f'{gemiddelde = } met {afwijking_waarde}', f'{ aantal_rollen =}')
+    print(f'{gemiddelde = } met {afwijking_waarde}', f'{ aantal_rollen = }')
 
     dataframes_gesplitst = []
     dataframe_lijst = []
@@ -218,9 +218,10 @@ def splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afwijking_w
         # eerste gedeelte wijst zichzelf is een itertuples() loop door de lijst.
         # het gelijk stellen van de teller aan de laatste rol
         # laadt hem in de dataframe_lijst.
-        if som >= gemiddelde + afwijking_waarde or aantal_rollen == num:
 
-            print(f'gemiddelde ={gemiddelde} som = {som} verschil = {som-gemiddelde}, STOP * {num} rollen in  file in dataframes_gesplitst__')
+        if som >= gemiddelde or aantal_rollen == num:
+
+            print(f'gemiddelde ={gemiddelde} som = {som} verschil = {som+gemiddelde}, STOP * {num} rollen in  file in dataframes_gesplitst__')
             dataframes_gesplitst.append(dataframe_lijst)
             dataframe_lijst=[]
 

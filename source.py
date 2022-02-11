@@ -110,9 +110,9 @@ while True:
             )
         ],
 
-        [sg.InputText('1', key='overlevering_pct'), sg.Text('overlevering %')],
+        # [sg.InputText('1', key='overlevering_pct'), sg.Text('overlevering %')],
         [sg.InputText('10', key='ee'), sg.Text('extra etiketten')],
-        [sg.InputText('10', key='wikkel'), sg.Text('Wikkel')],
+        # [sg.InputText('10', key='wikkel'), sg.Text('Wikkel')],
         [sg.InputText('opmerkingen', key='opmerkingen'), sg.Text('Opmerkingen')],
 
 
@@ -179,7 +179,7 @@ while True:
             sluitbarcode_posities = int(values['posities_sluitbarcode_uitvul_waarde'])
             sluitbarcode_uitvul_waarde_getal = f"{sluitbarcode_uitvul_waarde:>{0}{sluitbarcode_posities}}"
 
-            overlevering_pct = float(values['overlevering_pct'])
+            # overlevering_pct = float(values['overlevering_pct'])
             extra_etiketten = int(values['ee'])
             hoogte = int(values['formaat hoogte'])
             kern = int(values['kern'])
@@ -206,7 +206,7 @@ while True:
                   aantal_vdps,
                   etiket_y,
                   name_file_in,
-                  overlevering_pct,
+                  # overlevering_pct,
                   extra_etiketten,
                   wikkel)
 
