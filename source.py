@@ -168,7 +168,7 @@ while True:
             ordernummer = values['ordernummer_1']
 
             mes = int(values['mes'])
-            aantal_vdps = int(values['vdp_aantal'])
+            invoer_aantal_vdps = int(values['vdp_aantal'])
             etiket_y = int(values['Y_waarde'])
             name_file_in = Path(values['Browse'])
             pad = name_file_in.parent
@@ -203,7 +203,7 @@ while True:
                 wikkel = de_uitgerekenende_wikkel(aantal_per_rol, hoogte, kern)
 
             print(mes,
-                  aantal_vdps,
+                  invoer_aantal_vdps,
                   etiket_y,
                   name_file_in,
                   # overlevering_pct,
@@ -215,16 +215,16 @@ while True:
             ic(de_te_verwerken_dataframe.head(2))
             ic(de_te_verwerken_dataframe.tail(2))
 
-            aantalbanen = aantal_vdps * mes
+            aantalbanen = invoer_aantal_vdps * mes
             totaal_aantal = int(de_te_verwerken_dataframe.aantal.sum())
             if afwijkings_waarde!=0:
-                gemiddelde = (totaal_aantal // (mes * aantal_vdps)) - afwijkings_waarde
+                gemiddelde = (totaal_aantal // (mes * invoer_aantal_vdps)) - afwijkings_waarde
             else:
                 gemiddelde = 0
 
             de_gemaakte_df_uit_excel = splitter_df_2(de_te_verwerken_dataframe,
                                                      mes=mes,
-                                                     aantalvdps=aantal_vdps,
+                                                     aantalvdps=invoer_aantal_vdps,
                                                      sluitbarcode_posities=sluitbarcode_posities,
                                                      afwijking_waarde=afwijkings_waarde,
                                                      wikkel=wikkel,
@@ -242,7 +242,7 @@ while True:
             ic(aantalbanen)
 
             ##### dummybanen maken
-            dummybanen_bool, aantal_dummy_banen = banen_in_vdp_check(aantalbanen, banen_gemaakt)
+            dummybanen_bool, aantal_dummy_banen, aantal_vdps = banen_in_vdp_check(aantalbanen, banen_gemaakt, aantal_vdps=invoer_aantal_vdps, mes_waarde=mes)
 
             if dummybanen_bool == True:
                 dummy_banen_zijn = []
@@ -276,7 +276,8 @@ while True:
                 vervang_sluitean_.update(vervang_beeld_stans)
 
                 nieuwe_df = banen_met_reset_index.fillna(value=vervang_sluitean_)
-
+                vdp_meters = vdp_meters_uit_df_shape(nieuwe_df,hoogte)
+                ic(vdp_meters)
                 inloop_uitloop_stans(nieuwe_df, aantal_vdps, etiket_y,
                                      list(vervang_beeld_stans.keys())).to_csv(
                     vdp_naam_csv, index=0)
@@ -339,8 +340,9 @@ while True:
                 "Inloop en uitloop": f"{etiket_y} x 10 sheets.",
                 # 'De files staan hier': naar_folder_pad,
                 "Opmerkingen": opmerkingen,
-                "Lege banen in laatste VDP": dbanen
+                "Lege banen in laatste VDP": dbanen,
                 # " datafr": 0}
+                # "lengte vdp  in meters:": vdp_meters
             }
 
             summary_file_uit_excel = summary_splitter_df_2(de_te_verwerken_dataframe,

@@ -21,6 +21,12 @@ def rol_summary(df_in, regel, num):
     return summary_rol, aantal
 
 
+def vdp_meters_uit_df_shape(df, formaat_hoogte):
+    totaal, kolommen = df.shape
+    meters = totaal * (formaat_hoogte + 3) / 1000
+    return meters
+
+
 def summary_splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afwijking_waarde=0, wikkel=1, gemiddelde=None,
                   extra_etiketten=5):
     """Deze splitter functie is een copie van de splitter functie
@@ -32,13 +38,15 @@ def summary_splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afw
     start = 0
 
     aantal_rollen, kolommen = df_in.shape
-    totaal = int(df_in.aantal.sum())
-    if gemiddelde is None:
-        gemiddelde = (totaal // (mes * aantalvdps)) - afwijking_waarde
-    else:
-        gemiddelde = gemiddelde - afwijking_waarde
-    # gemiddelde = df_in.aantal.median()
-    print(f'{gemiddelde = } met {afwijking_waarde}', f'{ aantal_rollen =}')
+    totaal_aantal = int(df_in.aantal.sum())
+    gemiddelde = (totaal_aantal // (mes * aantalvdps)) + afwijking_waarde
+
+    # if gemiddelde is None:
+    #     gemiddelde = (totaal_aantal // (mes * aantalvdps)) - afwijking_waarde
+    # else:
+    #     gemiddelde = gemiddelde - afwijking_waarde
+    # # gemiddelde = df_in.aantal.median()
+    print(f'{gemiddelde = } met {afwijking_waarde}', f'{ aantal_rollen =}')#aantal_rollen
 
     summary_lijst = []
     slice_lijst = []
@@ -53,7 +61,7 @@ def summary_splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afw
 
         som = sum(aantal_lijst)
 
-        if som >= gemiddelde + afwijking_waarde or aantal_rollen == num:
+        if som >= gemiddelde or aantal_rollen == num:
             beginslice = start
             eindslice = num
             start = num

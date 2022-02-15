@@ -5,6 +5,8 @@ import pandas as pd
 from rollen import rol_beeld_is_pdf_uit_excel,rol_cq_regel_uitwerker
 
 
+import PySimpleGUI as sg
+
 from openpyxl import load_workbook
 import xlrd
 import xlwt
@@ -14,6 +16,11 @@ import xlwt
 
 from icecream import ic
 
+
+def vdp_meters_uit_df_shape(df, formaat_hoogte):
+    totaal, kolommen = df.shape
+    meters = totaal * (formaat_hoogte + 3) / 1000
+    return meters
 
 
 def wikkel_formule():
@@ -215,13 +222,14 @@ def splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afwijking_w
 
 
         som = sum(aantal_lijst)
+        ic(som)
         # eerste gedeelte wijst zichzelf is een itertuples() loop door de lijst.
         # het gelijk stellen van de teller aan de laatste rol
         # laadt hem in de dataframe_lijst.
 
         if som >= gemiddelde or aantal_rollen == num:
 
-            print(f'gemiddelde ={gemiddelde} som = {som} verschil = {som+gemiddelde}, STOP * {num} rollen in  file in dataframes_gesplitst__')
+            print(f'gemiddelde ={gemiddelde} som = {som} verschil = {som-gemiddelde}, STOP * {num} rollen in  file in dataframes_gesplitst__')
             dataframes_gesplitst.append(dataframe_lijst)
             dataframe_lijst=[]
 
@@ -234,25 +242,32 @@ def splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afwijking_w
 
 
 
-def banen_in_vdp_check(aantalbanen, daadwerkelijk_gemaakte_banen):
+def banen_in_vdp_check(aantalbanen, daadwerkelijk_gemaakte_banen, aantal_vdps=1,mes_waarde=1):
     # # try except for value error ValueError: Length mismatch:
 
     #todo dummy dfbaan maken in splitter?
     if aantalbanen == daadwerkelijk_gemaakte_banen:
         print(" doorgaan ")
-        return True,0
+        return True,0, aantal_vdps
     #todo test maken : check te veel te weinig
     else:
         if aantalbanen> daadwerkelijk_gemaakte_banen:
             dummybanen = aantalbanen-daadwerkelijk_gemaakte_banen
             print(f'{aantalbanen-daadwerkelijk_gemaakte_banen} te weinig dus opnieuw berekenen')
             print(f'maak {dummybanen} lege dummybanen')
-            return False,dummybanen
+            return False, dummybanen, aantal_vdps
+        elif aantalbanen < daadwerkelijk_gemaakte_banen:
+            print("meer vdp's nodig")
+            aantal_vdps +=1
+            # reken uit hoeveel dummybanen voor extra vdp
+            dummybanen = (aantal_vdps*mes_waarde)-daadwerkelijk_gemaakte_banen
+
+            return False, dummybanen, aantal_vdps,
         else:
             dummybanen = daadwerkelijk_gemaakte_banen-aantalbanen
             print(f'{daadwerkelijk_gemaakte_banen-aantalbanen} te veel?weinig? voeg lege baan(banen) toe')
             print(f'maak {dummybanen} lege dummybanen')
-            return False,dummybanen
+            return False, dummybanen,  aantal_vdps
 
 
 def dummy_rol_is_baan(regel,gemiddelde_aantal,pdf_sluitetiket=True):
@@ -451,8 +466,11 @@ def maak_meerdere_vdps(banen_gemaakt_uit_eerste_df, mes, aantal_vdps, ordernumme
         vervang_sluitean_.update(vervang_beeld_stans)
         ic(sluitbarcode_uitvul_waarde_getal)
         nieuwe_df = banen_met_reset_index.fillna(value=vervang_sluitean_)
+
         inloop_uitloop_stans(nieuwe_df, aantal_vdps, etiket_y,
                              list(vervang_beeld_stans.keys())).to_csv(vdp_naam_csv, index=0)
 
 
     return 0
+
+
