@@ -194,7 +194,15 @@ def dfbouwer(dfgenerator):
     return verwerkte_file_in
 
 
-def splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afwijking_waarde=0, wikkel=1, gemiddelde=None, extra_etiketten=5, pdf_sluitetiket=False):
+def splitter_df_2(df_in,
+                  mes,
+                  aantalvdps=1,
+                  sluitbarcode_posities=8,
+                  afwijking_waarde=0,
+                  wikkel=1,
+                  gemiddelde=None,
+                  extra_etiketten=5,
+                  pdf_sluitetiket=False):
     """Deze splitter functie neemt een x aantal argumenten en maakt daar een x aantal banen voor benodigd
     voor het maken van de vdp.
     er moet een functie komen die check over teveel of te weining
@@ -215,7 +223,7 @@ def splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afwijking_w
     for num, regel in enumerate(df_in.itertuples(index=0), 1):
 
         # df_regel, df_regel_aantal = rol_cq_regel_uitwerker(regel, wikkel, sluitbarcode_posities, extra_etiketten)
-        df_regel, df_regel_aantal = rol_beeld_is_pdf_uit_excel(regel, wikkel,  sluitbarcode_posities, pdf_sluitetiket, extra_etiketten=0)
+        df_regel, df_regel_aantal = rol_beeld_is_pdf_uit_excel(regel, wikkel,  sluitbarcode_posities, pdf_sluitetiket, extra_etiketten=extra_etiketten)
 
         dataframe_lijst.append(df_regel)
         aantal_lijst.append((df_regel_aantal))

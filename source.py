@@ -229,6 +229,7 @@ while True:
                                                      afwijking_waarde=afwijkings_waarde,
                                                      wikkel=wikkel,
                                                      gemiddelde=None,
+                                                     extra_etiketten=extra_etiketten,
                                                      pdf_sluitetiket=soortsluit_etiket
                                                      )
 
@@ -351,7 +352,9 @@ while True:
                                                      sluitbarcode_posities=sluitbarcode_posities,
                                                      afwijking_waarde=afwijkings_waarde,
                                                      wikkel=wikkel,
-                                                     gemiddelde=None)
+                                                     gemiddelde=None,
+                                                     extra_etiketten=extra_etiketten,
+                                                     )
 
             lengte_summary_df = len(summary_file_uit_excel)
             lijst_van_sumary_lijsten = lijst_opbreker(summary_file_uit_excel,mes,aantal_vdps)
