@@ -6,7 +6,7 @@ from icecream import ic
 
 columns = ["beeld", "omschrijving","aantal"]
 
-def rol_summary(df_in, regel, num):
+def rol_summary(df_in, regel, num, extra_etiketten):
     '''draait mee in de splitter2
     mischien zelfs tijn om async te proberen'''
     columns = ["beeld", "omschrijving","aantal"]
@@ -18,7 +18,7 @@ def rol_summary(df_in, regel, num):
         [(f'{regel.beeld} | rol {num}' , f'{regel.Omschrijving}', f'{regel.aantal} etiketten') for x in range(1)]
      ,columns=columns)
     # summary_rol= regel
-    return summary_rol, aantal
+    return summary_rol, aantal + extra_etiketten
 
 
 def vdp_meters_uit_df_shape(df, formaat_hoogte):
@@ -54,7 +54,7 @@ def summary_splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afw
 
     for num, regel in enumerate(df_in.itertuples(index=0), 1):
 
-        df_regel, df_regel_aantal = rol_summary(df_in, regel, num)
+        df_regel, df_regel_aantal = rol_summary(df_in, regel, num, extra_etiketten)
 
         aantal_lijst.append((df_regel_aantal))
         summary_lijst.append(df_regel)
