@@ -77,7 +77,7 @@ while True:
                         sg.Checkbox(
                             "Wikkel handmatig",
                             key="wikkel_handmatig",
-                            default=False,
+                            default=True,
                         )
                     ],
                     [
