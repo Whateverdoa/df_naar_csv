@@ -12,13 +12,13 @@ def rol_summary(df_in, regel, num, extra_etiketten):
     columns = ["beeld", "omschrijving","aantal"]
     # columns = list(df_in.columns)
 
-    aantal = regel.aantal
+    aantal = regel.aantal + extra_etiketten
 
     summary_rol= pd.DataFrame(
         [(f'{regel.beeld} | rol {num}' , f'{regel.Omschrijving}', f'{regel.aantal} etiketten') for x in range(1)]
      ,columns=columns)
     # summary_rol= regel
-    return summary_rol, aantal + extra_etiketten
+    return summary_rol, regel.aantal
 
 
 def vdp_meters_uit_df_shape(df, formaat_hoogte):
