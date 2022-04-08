@@ -106,7 +106,7 @@ def rol_beeld_is_pdf_uit_excel(regel,wikkel, posities_sluitbarcode=8, pdf_sluite
 
                     ])
 
-    return rol, aantal
+    return rol, regel.aantal
 
 
 def dummy_rol_is_baan(regel,gemiddelde_aantal,pdf_sluitetiket=True):
