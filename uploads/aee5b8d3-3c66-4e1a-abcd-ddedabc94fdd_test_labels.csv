@@ -1,0 +1,11 @@
+aantal;Omschrijving;sluitbarcode;Artnr;beeld
+100;Product A - Red Label;12345678;ART001;product_a.pdf
+150;Product B - Blue Label;12345679;ART002;product_b.pdf
+200;Product C - Green Label;12345680;ART003;product_c.pdf
+75;Product D - Yellow Label;12345681;ART004;product_d.pdf
+300;Product E - Purple Label;12345682;ART005;product_e.pdf
+125;Product F - Orange Label;12345683;ART006;product_f.pdf
+180;Product G - Pink Label;12345684;ART007;product_g.pdf
+90;Product H - Brown Label;12345685;ART008;product_h.pdf
+250;Product I - Black Label;12345686;ART009;product_i.pdf
+160;Product J - White Label;12345687;ART010;product_j.pdf
