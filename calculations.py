@@ -37,6 +37,10 @@ def wikkel_formule():
                 + pow(kern, 2)
             )
         )
+        # Fix: Prevent division by zero in wikkel calculation
+        if formaat_hoogte == 0:
+            raise ValueError(f"Invalid parameter: formaat_hoogte ({formaat_hoogte}) cannot be zero")
+        
         wikkel = int(2 * pi * (var_1 / 2) / formaat_hoogte + 2)
         return wikkel
 
@@ -101,21 +105,49 @@ def file_to_generator(file_in):
     """Builds from a workable csv or excel file a Dataframe
      on which to Generate with itertuples or ...."""
 
-    if Path(file_in).suffix == ".csv":
-        # extra arg = ";"or ","
+    try:
+        file_path = Path(file_in)
+        
+        # Security: Validate file path and check if file exists
+        if not file_path.exists():
+            raise FileNotFoundError(f"File not found: {file_in}")
+        
+        if not file_path.is_file():
+            raise ValueError(f"Path is not a file: {file_in}")
+        
+        # Check file size (prevent loading extremely large files)
+        file_size = file_path.stat().st_size
+        max_size = 100 * 1024 * 1024  # 100MB limit
+        if file_size > max_size:
+            raise ValueError(f"File too large: {file_size} bytes (max: {max_size} bytes)")
 
-        file_to_generate_on = pd.read_csv(file_in, ";")
-        return file_to_generate_on
+        if file_path.suffix.lower() == ".csv":
+            try:
+                file_to_generate_on = pd.read_csv(file_in, sep=";", encoding='utf-8')
+            except UnicodeDecodeError:
+                # Try different encoding if UTF-8 fails
+                file_to_generate_on = pd.read_csv(file_in, sep=";", encoding='latin-1')
+            return file_to_generate_on
 
-    elif Path(file_in).suffix == ".xlsx":
-        # print(Path(file_in).suffix)
-        file_to_generate_on = pd.read_excel(file_in, engine='openpyxl')
-        return file_to_generate_on
+        elif file_path.suffix.lower() == ".xlsx":
+            file_to_generate_on = pd.read_excel(file_in, engine='openpyxl')
+            return file_to_generate_on
 
-    elif Path(file_in).suffix == ".xls":
-        # print(Path(file_in).suffix)
-        file_to_generate_on = pd.read_excel(file_in)
-        return file_to_generate_on
+        elif file_path.suffix.lower() == ".xls":
+            file_to_generate_on = pd.read_excel(file_in)
+            return file_to_generate_on
+        
+        else:
+            raise ValueError(f"Unsupported file format: {file_path.suffix}")
+            
+    except PermissionError:
+        raise PermissionError(f"Permission denied accessing file: {file_in}")
+    except pd.errors.EmptyDataError:
+        raise ValueError(f"File is empty or contains no data: {file_in}")
+    except pd.errors.ParserError as e:
+        raise ValueError(f"Error parsing file {file_in}: {str(e)}")
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error reading file {file_in}: {str(e)}")
 
 
 # testdf = file_to_generator(r'C:\Users\Dhr. Ten Hoonte\PycharmProjects\df_naar_csv\test_excel\202124565 Geisha standaard.xlsx')
@@ -161,7 +193,13 @@ def splitter_df(df_in, mes, aantalvdps=1 , extra_etiketten=5):
 
     aantal_rollen, kolommen = df_in.shape
     totaal = int(df_in.Aantal.sum())
-    gemiddelde = totaal // (mes * aantalvdps)
+    
+    # Fix: Prevent division by zero
+    divisor = mes * aantalvdps
+    if divisor == 0:
+        raise ValueError(f"Invalid parameters: mes ({mes}) * aantalvdps ({aantalvdps}) cannot be zero")
+    
+    gemiddelde = totaal // divisor
 
     dataframe_lijst = []
     aantal_lijst = []
@@ -212,7 +250,13 @@ def splitter_df_2(df_in,
 
     aantal_rollen, kolommen = df_in.shape
     totaal_aantal = int(df_in.aantal.sum())
-    gemiddelde = (totaal_aantal // (mes * aantalvdps)) + afwijking_waarde
+    
+    # Fix: Prevent division by zero
+    divisor = mes * aantalvdps
+    if divisor == 0:
+        raise ValueError(f"Invalid parameters: mes ({mes}) * aantalvdps ({aantalvdps}) cannot be zero")
+    
+    gemiddelde = (totaal_aantal // divisor) + afwijking_waarde
 
     print(f'{gemiddelde = } met {afwijking_waarde}', f'{ aantal_rollen = }')
 
@@ -349,20 +393,6 @@ def lijst_opbreker(lijst_in, mes_waarde, combi):
 
 
 
-def headers_for_totaal_kolommen(dataframe_rol, mes):
-    df_rol_kolommen_lijst = dataframe_rol.columns.to_list()
-    count = 1
-    kolom_naam_lijst_naar_mes = []
-    for _ in range(mes):
-        for kolomnaam in df_rol_kolommen_lijst:
-            # print(kolomnaam, count)
-            header = f"{kolomnaam}_{count}"
-            kolom_naam_lijst_naar_mes.append(header)
-        count += 1
-
-    return kolom_naam_lijst_naar_mes
-
-
 def filter_kolommen_pdf(mes, de_kolomnaam):
     # defenitie gekopieerd van
     # headers_for_totaal_kolommen()
@@ -391,9 +421,19 @@ def inloop_uitloop_stans(df, wikkel, etiket_y, kolomnaam_vervang_waarde):
     # apr? laatstesluit? opbouw bewerken 3 sheets in en uit.
     # kan je 1 regel maken met generator en dat vermenigvuldigen met inloop waarde
 
-    loop = (etiket_y * 10) - (wikkel +(3 * etiket_y))
+    # Fix: Ensure loop value is never negative and handle edge cases
+    calculated_loop = (etiket_y * 10) - (wikkel + (3 * etiket_y))
+    loop = max(calculated_loop, 4)  # Ensure loop is at least 4 to prevent negative ranges
+    
+    # Additional validation
+    if etiket_y <= 0:
+        raise ValueError(f"Invalid etiket_y value: {etiket_y}. Must be positive.")
+    
+    if wikkel < 0:
+        raise ValueError(f"Invalid wikkel value: {wikkel}. Must be non-negative.")
+    
     ic(wikkel)
-    ic(loop)
+    ic(f"calculated_loop: {calculated_loop}, adjusted_loop: {loop}")
     generator = df.itertuples(index=0)
     ic(f'{df.head(20)}')
 
@@ -402,31 +442,47 @@ def inloop_uitloop_stans(df, wikkel, etiket_y, kolomnaam_vervang_waarde):
     data_df = []
     nieuwe_df = []
 
+    # Fix: Add bounds checking for iterslice operations
+    max_rows = len(df)
+    
+    # Ensure we don't slice beyond the dataframe length
+    slice_end = min(3, max_rows)
     sluitetiket = pd.DataFrame(
-        [x for x in itertools.islice(generator, 1, 3)] # if wikkel =1 else???/
+        [x for x in itertools.islice(generator, 1, slice_end)]
     )
     ic(sluitetiket)
-    # sluitetiket2= pd.DataFrame(
-    #     [x for x in itertools.islice(generator, 2, 3)],
 
     generator = df.itertuples(index=0)
 
-    for seq in itertools.islice(generator, 0, 4):
+    # Ensure slice bounds are valid
+    for seq in itertools.islice(generator, 0, min(4, max_rows)):
         data_df.append(seq)
 
     data_df1 = pd.DataFrame(data_df)
     ic(data_df1)
 
+    # Fix: Prevent invalid slice ranges
+    generator = df.itertuples(index=0)
+    slice_start = min(wikkel, max_rows - 1)
+    slice_end = min(wikkel + (3 * etiket_y), max_rows)
+    
     pdf_data_inloop_enuitloop_uit_iterslice = pd.DataFrame(
-        [x for x in itertools.islice(generator, wikkel, wikkel + (3*etiket_y))]
+        [x for x in itertools.islice(generator, slice_start, slice_end)]
     )
     ic(pdf_data_inloop_enuitloop_uit_iterslice.head())
 
     generator = df.itertuples(index=0)
-    for seq in itertools.islice(generator, 3, loop):
-        nieuwe_df.append(seq)
+    # Fix: Ensure valid range for main loop processing
+    start_pos = 3
+    end_pos = min(loop, max_rows)
+    
+    if start_pos < end_pos:  # Only process if we have a valid range
+        for seq in itertools.islice(generator, start_pos, end_pos):
+            nieuwe_df.append(seq)
+    
     inloopDF = pd.DataFrame(nieuwe_df)
-    inloopDF[kolomnaam_vervang_waarde] = "stans.pdf"
+    if not inloopDF.empty and kolomnaam_vervang_waarde:
+        inloopDF[kolomnaam_vervang_waarde] = "stans.pdf"
 
 
     indat = pd.concat(

@@ -15,20 +15,49 @@ def file_to_generator(file_in):
     """Builds from a workable csv or excel file a Dataframe
      on which to Generate with itertuples or ...."""
 
-    if Path(file_in).suffix == ".csv":
-        # extra arg = ";"or ","
-        file_to_generate_on = pd.read_csv(file_in, sep=";")
-        return file_to_generate_on
+    try:
+        file_path = Path(file_in)
+        
+        # Security: Validate file path and check if file exists
+        if not file_path.exists():
+            raise FileNotFoundError(f"File not found: {file_in}")
+        
+        if not file_path.is_file():
+            raise ValueError(f"Path is not a file: {file_in}")
+        
+        # Check file size (prevent loading extremely large files)
+        file_size = file_path.stat().st_size
+        max_size = 100 * 1024 * 1024  # 100MB limit
+        if file_size > max_size:
+            raise ValueError(f"File too large: {file_size} bytes (max: {max_size} bytes)")
 
-    elif Path(file_in).suffix == ".xlsx":
-        # print(Path(file_in).suffix)
-        file_to_generate_on = pd.read_excel(file_in, engine='openpyxl')
-        return file_to_generate_on
+        if file_path.suffix.lower() == ".csv":
+            try:
+                file_to_generate_on = pd.read_csv(file_in, sep=";", encoding='utf-8')
+            except UnicodeDecodeError:
+                # Try different encoding if UTF-8 fails
+                file_to_generate_on = pd.read_csv(file_in, sep=";", encoding='latin-1')
+            return file_to_generate_on
 
-    elif Path(file_in).suffix == ".xls":
-        # print(Path(file_in).suffix)
-        file_to_generate_on = pd.read_excel(file_in)
-        return file_to_generate_on
+        elif file_path.suffix.lower() == ".xlsx":
+            file_to_generate_on = pd.read_excel(file_in, engine='openpyxl')
+            return file_to_generate_on
+
+        elif file_path.suffix.lower() == ".xls":
+            file_to_generate_on = pd.read_excel(file_in)
+            return file_to_generate_on
+        
+        else:
+            raise ValueError(f"Unsupported file format: {file_path.suffix}")
+            
+    except PermissionError:
+        raise PermissionError(f"Permission denied accessing file: {file_in}")
+    except pd.errors.EmptyDataError:
+        raise ValueError(f"File is empty or contains no data: {file_in}")
+    except pd.errors.ParserError as e:
+        raise ValueError(f"Error parsing file {file_in}: {str(e)}")
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error reading file {file_in}: {str(e)}")
 
 
 def wikkel_formule():
@@ -105,7 +134,13 @@ def splitter_df_2(df_in,
 
     aantal_rollen, kolommen = df_in.shape
     totaal_aantal = int(df_in.aantal.sum())
-    gemiddelde = (totaal_aantal // (mes * aantalvdps)) + afwijking_waarde
+    
+    # Fix: Prevent division by zero
+    divisor = mes * aantalvdps
+    if divisor == 0:
+        raise ValueError(f"Invalid parameters: mes ({mes}) * aantalvdps ({aantalvdps}) cannot be zero")
+    
+    gemiddelde = (totaal_aantal // divisor) + afwijking_waarde
 
     print(f'{gemiddelde = } met {afwijking_waarde}', f'{ aantal_rollen = }')
 
@@ -230,7 +265,13 @@ def summary_splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afw
 
     aantal_rollen, kolommen = df_in.shape
     totaal_aantal = int(df_in.aantal.sum())
-    gemiddelde = (totaal_aantal // (mes * aantalvdps)) + afwijking_waarde
+    
+    # Fix: Prevent division by zero
+    divisor = mes * aantalvdps
+    if divisor == 0:
+        raise ValueError(f"Invalid parameters: mes ({mes}) * aantalvdps ({aantalvdps}) cannot be zero")
+    
+    gemiddelde = (totaal_aantal // divisor) + afwijking_waarde
 
     print(f'{gemiddelde = } met {afwijking_waarde}', f'{ aantal_rollen =}')
 
