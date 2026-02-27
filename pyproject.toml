@@ -1,0 +1,23 @@
+[project]
+name = "df-naar-csv"
+version = "0.1.0"
+description = "Excel/CSV processing tool for VDP (Variable Data Printing) generation"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas==1.4.0",
+    "numpy<2",
+    "icecream==2.1.1",
+    "openpyxl==3.0.9",
+    "xlrd==2.0.1",
+    "xlwt==1.3.0",
+    "PySimpleGUI>=5.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.34.0",
+    "python-multipart>=0.0.20",
+    "pydantic>=2.11.0",
+    "pydantic-settings>=2.9.0",
+    "python-dotenv>=1.1.0",
+]
+
+[project.scripts]
+run-api = "run_api:main"
