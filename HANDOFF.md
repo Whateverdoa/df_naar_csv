@@ -3,8 +3,8 @@
 ## Huidige status
 
 **Branch:** `feature/pdf-summary`
-**Repo (dev):** `/Users/miketenhoonte/PycharmProjects/df_naar_csv/`
-**Repo (productie):** `/Users/miketenhoonte/PRODUCTION/DJANGO-l02-app03-dev/df_naar_csv/`
+**Repo (dev):** `<dev-repo>/`
+**Repo (productie):** `<productie-repo>/`
 
 ### Wat werkt
 
@@ -89,6 +89,10 @@ Volledige review uitgevoerd op 2026-03-02. Issues gesorteerd op prioriteit.
 - [ ] **Batch PDF generatie** — Meerdere orders tegelijk verwerken
 - [ ] **Email verzending** — Gegenereerde PDF's per mail versturen
 
+### Business logic fixes
+
+- [ ] **Omschrijving/Artikel kolom mapping** — In de huidige business logic wordt de omschrijving-kolom verkeerd gebruikt. Omschrijving mag alleen gevuld zijn waar een sluitetiket nodig is. De waarden die nu in omschrijving staan horen in de artikel-kolom te staan. Aanpassen in `business_logic.py` (zowel dev als prod).
+
 ### Kritieke bugs (voor deploy)
 
 - [ ] **Migration fix** — `summary_pdf` toevoegen aan artifact type choices (bevinding #1)
@@ -142,6 +146,6 @@ uv add <package>                        # dependency toevoegen
 ## Productie-kopie
 
 PDF summary is gekopieerd naar productie:
-`/Users/miketenhoonte/PRODUCTION/DJANGO-l02-app03-dev/df_naar_csv/pdf_summary.py`
+`<productie-repo>/pdf_summary.py`
 
 Bij wijzigingen aan `pdf_summary.py` moet de productie-kopie handmatig gesynchroniseerd worden (tot duplicatie-issue #4 is opgelost).

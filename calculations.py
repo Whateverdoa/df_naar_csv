@@ -25,6 +25,8 @@ def bereken_vdp_aantal(total_labels, mes, max_meters_per_vdp, formaat_hoogte):
     labels_per_baan_max = max_meters * 1000 / (formaat_hoogte + 3)
     vdp_aantal = ceil(total_labels / (mes * labels_per_baan_max))
     """
+    if max_meters_per_vdp <= 0:
+        raise ValueError("max_meters_per_vdp must be greater than 0")
     labels_per_baan_max = max_meters_per_vdp * 1000 / (formaat_hoogte + 3)
     vdp_aantal = math.ceil(total_labels / (mes * labels_per_baan_max))
     return max(1, vdp_aantal)
