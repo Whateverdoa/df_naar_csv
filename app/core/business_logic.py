@@ -16,21 +16,24 @@ logger = logging.getLogger(__name__)
 def file_to_generator(file_in):
     """Builds from a workable csv or excel file a Dataframe
      on which to Generate with itertuples or ...."""
+    suffix = Path(file_in).suffix.lower()
 
-    if Path(file_in).suffix == ".csv":
-        # extra arg = ";"or ","
-        file_to_generate_on = pd.read_csv(file_in, sep=";")
-        return file_to_generate_on
-
-    elif Path(file_in).suffix == ".xlsx":
-        # print(Path(file_in).suffix)
-        file_to_generate_on = pd.read_excel(file_in, engine='openpyxl')
-        return file_to_generate_on
-
-    elif Path(file_in).suffix == ".xls":
-        # print(Path(file_in).suffix)
-        file_to_generate_on = pd.read_excel(file_in)
-        return file_to_generate_on
+    try:
+        if suffix == ".csv":
+            return pd.read_csv(file_in, sep=";")
+        elif suffix == ".xlsx":
+            return pd.read_excel(file_in, engine='openpyxl')
+        elif suffix == ".xls":
+            return pd.read_excel(file_in)
+        else:
+            logger.warning("Unsupported file format: %s", suffix)
+            return None
+    except FileNotFoundError:
+        logger.error("File not found: %s", file_in)
+        return None
+    except Exception as e:
+        logger.error("Failed to read file %s: %s", file_in, e)
+        return None
 
 
 def wikkel_formule():
@@ -116,7 +119,7 @@ def splitter_df_2(df_in,
     totaal_aantal = int(df_in.aantal.sum())
     gemiddelde = (totaal_aantal // (mes * aantalvdps)) + afwijking_waarde
 
-    print(f'{gemiddelde = } met {afwijking_waarde}', f'{ aantal_rollen = }')
+    logger.debug("splitter_df_2: gemiddelde=%d afwijking=%d rollen=%d", gemiddelde, afwijking_waarde, aantal_rollen)
 
     dataframes_gesplitst = []
     dataframe_lijst = []
@@ -133,7 +136,7 @@ def splitter_df_2(df_in,
 
         if som >= gemiddelde or aantal_rollen == num:
 
-            print(f'gemiddelde ={gemiddelde} som = {som} verschil = {som-gemiddelde}, STOP * {num} rollen in  file in dataframes_gesplitst__')
+            logger.debug("Lane split: gemiddelde=%d som=%d verschil=%d rollen=%d", gemiddelde, som, som - gemiddelde, num)
             dataframes_gesplitst.append(pd.concat(dataframe_lijst, ignore_index=True))
             dataframe_lijst=[]
 
@@ -147,24 +150,17 @@ def splitter_df_2(df_in,
 def banen_in_vdp_check(aantalbanen, daadwerkelijk_gemaakte_banen, aantal_vdps=1, mes_waarde=1):
     """Check if we need dummy lanes"""
     if aantalbanen == daadwerkelijk_gemaakte_banen:
-        print(" doorgaan ")
+        logger.debug("banen_in_vdp_check: exact match, doorgaan")
         return True, 0, aantal_vdps
+    elif aantalbanen > daadwerkelijk_gemaakte_banen:
+        dummybanen = aantalbanen - daadwerkelijk_gemaakte_banen
+        logger.info("banen_in_vdp_check: %d te weinig, maak %d dummybanen", dummybanen, dummybanen)
+        return False, dummybanen, aantal_vdps
     else:
-        if aantalbanen > daadwerkelijk_gemaakte_banen:
-            dummybanen = aantalbanen - daadwerkelijk_gemaakte_banen
-            print(f'{aantalbanen-daadwerkelijk_gemaakte_banen} te weinig dus opnieuw berekenen')
-            print(f'maak {dummybanen} lege dummybanen')
-            return False, dummybanen, aantal_vdps
-        elif aantalbanen < daadwerkelijk_gemaakte_banen:
-            print("meer vdp's nodig")
-            aantal_vdps += 1
-            dummybanen = (aantal_vdps * mes_waarde) - daadwerkelijk_gemaakte_banen
-            return False, dummybanen, aantal_vdps,
-        else:
-            dummybanen = daadwerkelijk_gemaakte_banen - aantalbanen
-            print(f'{daadwerkelijk_gemaakte_banen-aantalbanen} te veel?weinig? voeg lege baan(banen) toe')
-            print(f'maak {dummybanen} lege dummybanen')
-            return False, dummybanen, aantal_vdps
+        logger.info("banen_in_vdp_check: meer VDPs nodig")
+        aantal_vdps += 1
+        dummybanen = (aantal_vdps * mes_waarde) - daadwerkelijk_gemaakte_banen
+        return False, dummybanen, aantal_vdps
 
 
 def lijst_opbreker(lijst_in, mes_waarde, combi):
@@ -193,7 +189,7 @@ def maak_een_dummy_baan(dummy_baan_generator, gemiddelde, aantal_dummy_banen):
 
     # Get rules for dummies
     db = dummy_baan_generator[0:aantal_dummy_banen].itertuples()
-    print(f'{db=}')
+    logger.debug("maak_een_dummy_baan: %d dummy banen", aantal_dummy_banen)
 
     def dummy_rol_is_baan(regel, gemiddelde_aantal, pdf_sluitetiket=True):
         columns = ["pdf", "omschrijving", "Artnr", "sluitbarcode"]
@@ -238,7 +234,7 @@ def summary_splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afw
     totaal_aantal = int(df_in.aantal.sum())
     gemiddelde = (totaal_aantal // (mes * aantalvdps)) + afwijking_waarde
 
-    print(f'{gemiddelde = } met {afwijking_waarde}', f'{ aantal_rollen =}')
+    logger.debug("summary_splitter_df_2: gemiddelde=%d afwijking=%d rollen=%d", gemiddelde, afwijking_waarde, aantal_rollen)
 
     summary_lijst = []
     slice_lijst = []
@@ -257,7 +253,7 @@ def summary_splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afw
             beginslice = start
             eindslice = num
             start = num
-            print(beginslice,eindslice)
+            logger.debug("summary_splitter_df_2: slice=(%d, %d)", beginslice, eindslice)
             slice_lijst.append((beginslice,eindslice))
             aantal_lijst = []
             continue
@@ -275,7 +271,7 @@ def df_sum_met_slice(de_te_gebruiken_dataframe, functie_splitter_tuple_lijst_mak
         baangenerator = de_te_gebruiken_dataframe.itertuples(index=0)
         beginslice = slices[0]
         eindslice = slices[1]
-        print(slices, beginslice,eindslice)
+        logger.debug("df_sum_met_slice: slice=(%d, %d)", beginslice, eindslice)
 
         baan = [x for x in itertools.islice(baangenerator, beginslice, eindslice)]
 
@@ -296,7 +292,7 @@ def df_sum_met_slice(de_te_gebruiken_dataframe, functie_splitter_tuple_lijst_mak
 def df_sum_form_writer(**kwargs):
     """build a df file for summary purposes with  *kwargv"""
     for key, value in kwargs.items():
-        print(key, value)
+        logger.debug("df_sum_form_writer: %s=%s", key, value)
 
     sum_dik = {key: [key,value] for (key, value) in kwargs.items()}
     df_summary = pd.DataFrame.from_dict(sum_dik, orient="index")

@@ -1,7 +1,9 @@
 import itertools
+import logging
 from pathlib import Path
 import pandas as pd
 
+logger = logging.getLogger(__name__)
 
 columns = ["beeld", "omschrijving","aantal"]
 
@@ -45,7 +47,7 @@ def summary_splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afw
     # else:
     #     gemiddelde = gemiddelde - afwijking_waarde
     # # gemiddelde = df_in.aantal.median()
-    print(f'{gemiddelde = } met {afwijking_waarde}', f'{ aantal_rollen =}')#aantal_rollen
+    logger.debug("summary_splitter_df_2: gemiddelde=%d afwijking=%d rollen=%d", gemiddelde, afwijking_waarde, aantal_rollen)
 
     summary_lijst = []
     slice_lijst = []
@@ -64,7 +66,7 @@ def summary_splitter_df_2(df_in, mes, aantalvdps=1, sluitbarcode_posities=8, afw
             beginslice = start
             eindslice = num
             start = num
-            print(beginslice,eindslice)
+            logger.debug("summary_splitter_df_2: slice=(%d, %d)", beginslice, eindslice)
             slice_lijst.append((beginslice,eindslice))
             aantal_lijst = []
             continue
@@ -82,7 +84,7 @@ def df_sum_met_slice(de_te_gebruiken_dataframe, functie_splitter_tuple_lijst_mak
         baangenerator = de_te_gebruiken_dataframe.itertuples(index=0)
         beginslice = slices[0]
         eindslice = slices[1]
-        print(slices, beginslice,eindslice)
+        logger.debug("df_sum_met_slice: slice=(%d, %d)", beginslice, eindslice)
 
         baan = [x for x in itertools.islice(baangenerator, beginslice, eindslice)]
 
@@ -113,16 +115,16 @@ def html_sum_form_writer(user_designated_file_path, titel="summary", **kwargs):
     naam_html_file = f"{user_designated_file_path}/{titel}.html"
 
     with open(naam_html_file, "w") as f_html:
-        print("<!DOCTYPE html>", file=f_html)
-        print('<html lang="en">', file=f_html)
-        print("  <head>", file=f_html)
-        print("    <meta charset='UTF-8'>", file=f_html)
-        print("  </head>", file=f_html)
-        print("  <body>", file=f_html)
+        f_html.write("<!DOCTYPE html>\n")
+        f_html.write('<html lang="en">\n')
+        f_html.write("  <head>\n")
+        f_html.write("    <meta charset='UTF-8'>\n")
+        f_html.write("  </head>\n")
+        f_html.write("  <body>\n")
         for key, value in kwargs.items():
-            print(f"    <p><b>{_html.escape(str(key))}</b> : {_html.escape(str(value))}</p>", file=f_html)
-        print("  </body>", file=f_html)
-        print("</html>", file=f_html)
+            f_html.write(f"    <p><b>{_html.escape(str(key))}</b> : {_html.escape(str(value))}</p>\n")
+        f_html.write("  </body>\n")
+        f_html.write("</html>\n")
 
 
 def df_sum_form_writer(**kwargs):
@@ -131,7 +133,7 @@ def df_sum_form_writer(**kwargs):
      "build a df file for summary purposes with  *kwargv
      """
     for key, value in kwargs.items():
-        print(key, value)
+        logger.debug("df_sum_form_writer: %s=%s", key, value)
 
     # sum_dik = {key: value in kwargs.items()}
     sum_dik = {key: [key,value] for (key, value) in kwargs.items()}

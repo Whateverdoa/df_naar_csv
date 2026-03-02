@@ -112,22 +112,24 @@ def headers_for_totaal_kolommen(dataframe_rol, mes):
 def file_to_generator(file_in):
     """Builds from a workable csv or excel file a Dataframe
      on which to Generate with itertuples or ...."""
+    suffix = Path(file_in).suffix.lower()
 
-    if Path(file_in).suffix == ".csv":
-        # extra arg = ";"or ","
-
-        file_to_generate_on = pd.read_csv(file_in, ";")
-        return file_to_generate_on
-
-    elif Path(file_in).suffix == ".xlsx":
-        # print(Path(file_in).suffix)
-        file_to_generate_on = pd.read_excel(file_in, engine='openpyxl')
-        return file_to_generate_on
-
-    elif Path(file_in).suffix == ".xls":
-        # print(Path(file_in).suffix)
-        file_to_generate_on = pd.read_excel(file_in)
-        return file_to_generate_on
+    try:
+        if suffix == ".csv":
+            return pd.read_csv(file_in, sep=";")
+        elif suffix == ".xlsx":
+            return pd.read_excel(file_in, engine='openpyxl')
+        elif suffix == ".xls":
+            return pd.read_excel(file_in)
+        else:
+            logger.warning("Unsupported file format: %s", suffix)
+            return None
+    except FileNotFoundError:
+        logger.error("File not found: %s", file_in)
+        return None
+    except Exception as e:
+        logger.error("Failed to read file %s: %s", file_in, e)
+        return None
 
 
 # testdf = file_to_generator(r'C:\Users\Dhr. Ten Hoonte\PycharmProjects\df_naar_csv\test_excel\202124565 Geisha standaard.xlsx')
@@ -181,12 +183,12 @@ def splitter_df(df_in, mes, aantalvdps=1 , extra_etiketten=5):
 
         dataframe_lijst.append(rol_cq_regel_uitwerker(regel, 1, extra_etiketten))
         aantal_lijst.append(rol_cq_regel_uitwerker(regel, 1)[1])
-        print(num)
+        logger.debug("splitter_df: num=%d", num)
         som = sum(aantal_lijst)
         if som >= 1000:
-            print(som,"STOP "*20)
+            logger.debug("splitter_df: som=%d STOP", som)
 
-    print(f'{aantal_lijst=}')
+    logger.debug("splitter_df: aantal_lijst=%s", aantal_lijst)
 
     return aantal_rollen, totaal, gemiddelde, kolomnamen
     # return dataframe_lijst
@@ -226,7 +228,7 @@ def splitter_df_2(df_in,
     totaal_aantal = int(df_in.aantal.sum())
     gemiddelde = (totaal_aantal // (mes * aantalvdps)) + afwijking_waarde
 
-    print(f'{gemiddelde = } met {afwijking_waarde}', f'{ aantal_rollen = }')
+    logger.debug("splitter_df_2: gemiddelde=%d afwijking=%d rollen=%d", gemiddelde, afwijking_waarde, aantal_rollen)
 
     dataframes_gesplitst = []
     dataframe_lijst = []
@@ -248,7 +250,7 @@ def splitter_df_2(df_in,
 
         if som >= gemiddelde or aantal_rollen == num:
 
-            print(f'gemiddelde ={gemiddelde} som = {som} verschil = {som-gemiddelde}, STOP * {num} rollen in  file in dataframes_gesplitst__')
+            logger.debug("Lane split: gemiddelde=%d som=%d verschil=%d rollen=%d", gemiddelde, som, som - gemiddelde, num)
             dataframes_gesplitst.append(pd.concat(dataframe_lijst, ignore_index=True))
             dataframe_lijst=[]
 
@@ -266,27 +268,17 @@ def banen_in_vdp_check(aantalbanen, daadwerkelijk_gemaakte_banen, aantal_vdps=1,
 
     #todo dummy dfbaan maken in splitter?
     if aantalbanen == daadwerkelijk_gemaakte_banen:
-        print(" doorgaan ")
-        return True,0, aantal_vdps
-    #todo test maken : check te veel te weinig
+        logger.debug("banen_in_vdp_check: exact match, doorgaan")
+        return True, 0, aantal_vdps
+    elif aantalbanen > daadwerkelijk_gemaakte_banen:
+        dummybanen = aantalbanen - daadwerkelijk_gemaakte_banen
+        logger.info("banen_in_vdp_check: %d te weinig, maak %d dummybanen", dummybanen, dummybanen)
+        return False, dummybanen, aantal_vdps
     else:
-        if aantalbanen> daadwerkelijk_gemaakte_banen:
-            dummybanen = aantalbanen-daadwerkelijk_gemaakte_banen
-            print(f'{aantalbanen-daadwerkelijk_gemaakte_banen} te weinig dus opnieuw berekenen')
-            print(f'maak {dummybanen} lege dummybanen')
-            return False, dummybanen, aantal_vdps
-        elif aantalbanen < daadwerkelijk_gemaakte_banen:
-            print("meer vdp's nodig")
-            aantal_vdps +=1
-            # reken uit hoeveel dummybanen voor extra vdp
-            dummybanen = (aantal_vdps*mes_waarde)-daadwerkelijk_gemaakte_banen
-
-            return False, dummybanen, aantal_vdps,
-        else:
-            dummybanen = daadwerkelijk_gemaakte_banen-aantalbanen
-            print(f'{daadwerkelijk_gemaakte_banen-aantalbanen} te veel?weinig? voeg lege baan(banen) toe')
-            print(f'maak {dummybanen} lege dummybanen')
-            return False, dummybanen,  aantal_vdps
+        logger.info("banen_in_vdp_check: meer VDPs nodig")
+        aantal_vdps += 1
+        dummybanen = (aantal_vdps * mes_waarde) - daadwerkelijk_gemaakte_banen
+        return False, dummybanen, aantal_vdps
 
 
 def dummy_rol_is_baan(regel,gemiddelde_aantal,pdf_sluitetiket=True):
@@ -329,7 +321,7 @@ def maak_een_dummy_baan(dummy_baan_generator, gemiddelde, aantal_dummy_banen):
 
     # stap1 haal uit Dataframe  de regels voor de dummys # stap2 maak een nieuwe itertuples() hiermee
     db = dummy_baan_generator[0:aantal_dummy_banen].itertuples()
-    print(f'{db=}')
+    logger.debug("maak_een_dummy_baan: %d dummy banen", aantal_dummy_banen)
 
     # verwerkte_file_in = pd.DataFrame(nieuwe_df)
     dummy_lijst_voor_baan=[dummy_rol_is_baan(regel,gemiddelde,pdf_sluitetiket=True) for regel in db]
@@ -354,22 +346,6 @@ def lijst_opbreker(lijst_in, mes_waarde, combi):
         end += mes_waarde
 
     return combinatie_binnen_mes
-
-
-
-
-def headers_for_totaal_kolommen(dataframe_rol, mes):
-    df_rol_kolommen_lijst = dataframe_rol.columns.to_list()
-    count = 1
-    kolom_naam_lijst_naar_mes = []
-    for _ in range(mes):
-        for kolomnaam in df_rol_kolommen_lijst:
-            # print(kolomnaam, count)
-            header = f"{kolomnaam}_{count}"
-            kolom_naam_lijst_naar_mes.append(header)
-        count += 1
-
-    return kolom_naam_lijst_naar_mes
 
 
 def filter_kolommen_pdf(mes, de_kolomnaam):
@@ -462,7 +438,7 @@ def maak_meerdere_vdps(banen_gemaakt_uit_eerste_df, mes, aantal_vdps, ordernumme
 
     for count, de_te_maken_vdp in enumerate(lijst_van_vdps_in_lijsten):
         vdp_naam_csv = pad.joinpath(f"{ordernummer} VDP {count + 1}.csv")
-        print(vdp_naam_csv)
+        logger.info("Writing VDP CSV: %s", vdp_naam_csv)
 
         banen_met_reset_index = pd.concat(de_te_maken_vdp, axis=1)
 
