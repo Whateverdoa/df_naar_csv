@@ -109,11 +109,17 @@ Volledige review uitgevoerd op 2026-03-02. Issues gesorteerd op prioriteit.
 - [ ] **Test coverage uitbreiden** — Tests voor splitter, wikkel, calculations, edge cases (bevinding #13)
 - [ ] **Opruimen** — `werkenmetcalc_temp.py` en `source.py` referenties verwijderen (bevindingen #14, #15)
 
-### PDF verbeteringen
+### PDF summary verbeteringen (aparte sessie nodig voor layout)
 
+Bugbot bevindingen (uit PR #2):
+- [ ] **SPAN verbergt labels in PDF tabel** — Subtotaal/Totaal/Gemiddelde labels staan in kolom 3 maar SPAN begint bij kolom 0 (die leeg is). Labels zijn onzichtbaar. Fix: label Paragraph in kolom 0 plaatsen. (`pdf_summary.py:285-335`)
+- [ ] **Unescaped user input in Paragraph** — `opmerkingen` wordt direct in reportlab Paragraph geïnterpoleerd. Tekens als `<`, `>`, `&` crashen PDF generatie met XMLParseError. Fix: `xml.sax.saxutils.escape()` toepassen. (`pdf_summary.py:345-346`)
+
+Layout verbeteringen:
 - [ ] Paginering bij veel banen (multi-page PDF support)
 - [ ] Logo/bedrijfsbranding toevoegen aan header
 - [ ] Landscape optie voor orders met veel banen
+- [ ] Layout review sessie plannen — kolom breedtes, VDP-groepering, totaalrij opmaak
 
 ### FastAPI (bewaard voor toekomst)
 
