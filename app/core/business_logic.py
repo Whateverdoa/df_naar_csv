@@ -68,23 +68,30 @@ def begin_eind_dataframe(df_rol):
 
 
 def rol_beeld_is_pdf_uit_excel(regel, wikkel, posities_sluitbarcode=8, pdf_sluitetiket=True, extra_etiketten=5):
-    """
-    Simplified version of rol processing for API use
-    This is a basic implementation - you may need to import the full function from rollen.py
-    """
+    """Build a single-roll DataFrame with wikkel wrapping and sluitetiket rows."""
     aantal = int(regel.aantal)
     columns = ["beeld", "omschrijving", "Artnr", "sluitbarcode"]
 
-    if pdf_sluitetiket:
-        rol_vulling = pd.DataFrame(
-            [(f'{regel.beeld}', regel.Omschrijving, regel.Artnr, f"{regel.sluitbarcode:0>{posities_sluitbarcode}}")
-             for x in range(aantal + extra_etiketten)], columns=columns)
-    else:
-        rol_vulling = pd.DataFrame(
-            [(f'{regel.beeld}', regel.Omschrijving, regel.Artnr, f"{regel.sluitbarcode:0>{posities_sluitbarcode}}")
-             for x in range(aantal + extra_etiketten)], columns=columns)
+    rol_vulling = pd.DataFrame(
+        [(f'{regel.beeld}', "", regel.Artnr, f"{regel.sluitbarcode:0>{posities_sluitbarcode}}")
+         for _ in range(aantal + extra_etiketten)], columns=columns)
 
-    return rol_vulling, aantal
+    if pdf_sluitetiket and hasattr(regel, 'sluitbeeld'):
+        sluitetiket = pd.DataFrame(
+            [(f'{regel.sluitbeeld}', "", "", f"{regel.sluitbarcode:0>{posities_sluitbarcode}}")],
+            columns=columns)
+    else:
+        sluitetiket = pd.DataFrame(
+            [("leeg.pdf", f'{regel.Omschrijving} | {aantal} etiketten', "",
+              f"{regel.sluitbarcode:0>{posities_sluitbarcode}}")],
+            columns=columns)
+
+    wikkel_om_rol = pd.DataFrame(
+        [('stans.pdf', "", "", f"{regel.sluitbarcode:0>{posities_sluitbarcode}}")
+         for _ in range(wikkel)], columns=columns)
+
+    rol = pd.concat([wikkel_om_rol, sluitetiket, rol_vulling, sluitetiket], ignore_index=True)
+    return rol, aantal
 
 
 def splitter_df_2(df_in,
