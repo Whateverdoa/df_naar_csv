@@ -2,14 +2,16 @@
 
 ## Huidige status
 
-**Branch:** `feature/pdf-summary`
+**Branch:** `master`
 **Repo (dev):** `<dev-repo>/`
 **Repo (productie):** `<productie-repo>/`
 
 ### Wat werkt
 
-- **Django app (productie):** VDP CSV-generatie, summary XLSX/HTML, formulier met alle parameters, order history view
-- **PDF summary (dev):** header banner, metrics bar, parameter tabellen, banen overzicht met VDP-groepering, footer met opmerkingen. Tests: 3/3 passing (`uv run pytest test_pdf_summary.py -v`)
+- **Django app (productie):** VDP CSV-generatie, summary XLSX/HTML/PDF, formulier met alle parameters incl. max meters per VDP, kern dropdown, verbeterde UX, order history view
+- **Max meters per VDP:** automatische berekening van `vdp_aantal` op basis van max rollengte (PR #3 merged)
+- **PDF summary:** header banner, metrics bar, parameter tabellen, banen overzicht met VDP-groepering, footer met opmerkingen (PR #2 merged)
+- **Kritieke fixes:** migration summary_pdf, XSS fix html.escape(), broken HTML, __pycache__ uit git (PR #5 merged)
 - **FastAPI integratie (dev):** volledige API met endpoints — zie `README_API.md`. Niet in productie; bewaard voor toekomstig gebruik
 - **Dependency management:** overgestapt van pip/requirements.txt naar uv (`pyproject.toml` + `uv.lock`)
 
@@ -40,22 +42,22 @@ df_naar_csv/                     app/
 
 Volledige review uitgevoerd op 2026-03-02. Issues gesorteerd op prioriteit.
 
-### KRITIEK — direct fixen voor merge/deploy
+### KRITIEK — ~~direct fixen voor merge/deploy~~ OPGELOST (PR #5)
 
-| # | Issue | Locatie | Details |
-|---|-------|---------|---------|
-| 1 | **Missing `summary_pdf` artifact type in migration** | Prod: `migrations/0001_initial.py:36` + `core/processing.py:228` | Migration definieert alleen `vdp_csv`, `summary_xlsx`, `summary_html`. Code maakt `summary_pdf` artifacts aan → crasht bij DB save. **Fix:** nieuwe migration toevoegen met `summary_pdf` choice. |
-| 2 | **XSS in HTML writer** | Prod: `core/business_logic.py:442`, Dev: `summary.py:132` | User input (opmerkingen via `**kwargs`) wordt ongeëscaped in HTML geschreven: `print(f" <p><b>{key}</b> : {value}<p/>", ...)`. **Fix:** `html.escape()` toepassen op `key` en `value`. |
-| 3 | **Broken HTML in summary** | Dev: `summary.py:127` | `<meta charset='UTF-8>'` — quote staat op verkeerde plek (moet `'UTF-8'`). Ook `<p/>` i.p.v. `</p>` op regel 132. |
+| # | Issue | Status | Details |
+|---|-------|--------|---------|
+| 1 | **Missing `summary_pdf` artifact type** | FIXED | Migration 0003 toegevoegd met `summary_pdf` choice. |
+| 2 | **XSS in HTML writer** | FIXED | `html.escape()` toegepast op key en value in beide repo's. |
+| 3 | **Broken HTML in summary** | FIXED | Charset quote en `</p>` closing tags gefixt. |
 
 ### HOOG
 
-| # | Issue | Locatie | Details |
-|---|-------|---------|---------|
-| 4 | **Code duplicatie dev ↔ prod** | Dev `app/core/` vs Prod `core/` | 6+ functies 100% identiek. Risico op drift. Overweeg: dev repo als single source of truth, productie als Django-wrapper. |
-| 5 | **`__pycache__` in git** | Root + `app/` dirs | `.gitignore` bevat `__pycache__/` maar bestanden zijn al getracked. **Fix:** `git rm -r --cached **/__pycache__/` |
-| 6 | **Print statements i.p.v. logging** | Dev: 15× in `business_logic.py`, Prod: 21× | Alle `print()` calls vervangen door `logging.getLogger(__name__)` calls. |
-| 7 | **Geen zoekfunctie in order historie** | Prod: `views.py:79` | `VDPJob.objects.all().order_by('-created_at')` — geen filter, search, of paginatie. Bij veel orders wordt dit traag en onbruikbaar. |
+| # | Issue | Status | Details |
+|---|-------|--------|---------|
+| 4 | **Code duplicatie dev ↔ prod** | OPEN | 6+ functies identiek. Risico op drift. |
+| 5 | **`__pycache__` in git** | FIXED | `git rm --cached` uitgevoerd (PR #5). |
+| 6 | **Print statements i.p.v. logging** | OPEN | Dev: 15×, Prod: 21× print() calls. |
+| 7 | **Geen zoekfunctie in order historie** | OPEN | Geen filter, search, of paginatie. |
 
 ### MEDIUM
 
@@ -74,7 +76,7 @@ Volledige review uitgevoerd op 2026-03-02. Issues gesorteerd op prioriteit.
 |---|-------|---------|---------|
 | 14 | **`source.py` verwijderd, referenties niet opgeruimd** | Git status: `D source.py` | Controleer of imports/referenties naar `source.py` nog bestaan. |
 | 15 | **`werkenmetcalc_temp.py` orphaned** | Dev repo root | Tijdelijk bestand, kan verwijderd worden. |
-| 16 | **Form defaults hardcoded in `forms.py`** | Prod: `forms.py:21-91` | 13 initial-waarden (mes=4, vdp_aantal=7, kern=76, etc.) hardcoded in form. Overweeg Django settings of database config. |
+| 16 | **Form defaults hardcoded in `forms.py`** | Prod: `forms.py` | Defaults bijgewerkt (mes=3, vdp=1, kern dropdown, max_meters=600) maar nog steeds hardcoded. Overweeg Django settings. |
 
 ---
 
@@ -82,7 +84,7 @@ Volledige review uitgevoerd op 2026-03-02. Issues gesorteerd op prioriteit.
 
 ### Nieuwe features
 
-- [ ] **Meters per VDP feature** — Nieuw veld `max_meters_per_vdp` toevoegen aan formulier. Automatisch `vdp_aantal` berekenen op basis van totale meters en max per VDP. Vereist: form field, berekening in `business_logic.py`, validatie, test coverage.
+- [x] **Meters per VDP feature** — `max_meters_per_vdp` form field, auto-berekening `vdp_aantal`, kern dropdown, form UX overhaul (PR #3 merged)
 - [ ] **Order zoekfunctie** — Search, filter (op datum, klantnaam, bestandsnaam), en paginatie toevoegen aan history view (`views.py:79`). Django `django-filter` + `Paginator` of vergelijkbaar.
 - [ ] **Input data opslaan voor herproductie** — Excel/CSV input bestand bewaren bij de order zodat individuele rollen die in productie zijn gefaald opnieuw gegenereerd kunnen worden vanuit de order historie. Vereist: input file opslag in media, "opnieuw maken" actie per rol in history detail view.
 - [ ] **PDF summary preview in webapp** — PDF summary inline tonen in een tab op de resultatenpagina (i.p.v. alleen download)
@@ -91,19 +93,19 @@ Volledige review uitgevoerd op 2026-03-02. Issues gesorteerd op prioriteit.
 
 ### Business logic fixes
 
-- [ ] **Omschrijving/Artikel kolom mapping** — In de huidige business logic wordt de omschrijving-kolom verkeerd gebruikt. Omschrijving mag alleen gevuld zijn waar een sluitetiket nodig is. De waarden die nu in omschrijving staan horen in de artikel-kolom te staan. Aanpassen in `business_logic.py` (zowel dev als prod).
+- [x] ~~**Omschrijving/Artikel kolom mapping**~~ — Omschrijving leeg bij normale etiketten, alleen gevuld bij sluitetiketten. (PR #4 — open, wacht op merge)
 
 ### Kritieke bugs (voor deploy)
 
-- [ ] **Migration fix** — `summary_pdf` toevoegen aan artifact type choices (bevinding #1)
-- [ ] **XSS fix** — `html.escape()` toepassen in HTML writer (bevinding #2)
-- [ ] **HTML fix** — charset meta tag en `</p>` closing tags (bevinding #3)
+- [x] ~~**Migration fix**~~ — Migration 0003 met `summary_pdf` choice (PR #5 merged)
+- [x] ~~**XSS fix**~~ — `html.escape()` in beide repo's (PR #5 merged)
+- [x] ~~**HTML fix**~~ — charset meta tag en `</p>` closing tags (PR #5 merged)
 
 ### Code kwaliteit
 
 - [ ] **print → logger** — Alle print statements vervangen door Python logging (bevinding #6)
 - [ ] **Code duplicatie oplossen** — Single source of truth voor gedeelde functies (bevinding #4)
-- [ ] **`__pycache__` uit git** — `git rm --cached` en verificatie `.gitignore` (bevinding #5)
+- [x] ~~**`__pycache__` uit git**~~ — `git rm --cached` uitgevoerd (PR #5 merged)
 - [ ] **Duplicate functie verwijderen** — `headers_for_totaal_kolommen()` in `calculations.py` (bevinding #12)
 - [ ] **Error handling** — try/except op file parsing, file handle fix (bevindingen #9, #10, #11)
 - [ ] **Test coverage uitbreiden** — Tests voor splitter, wikkel, calculations, edge cases (bevinding #13)
@@ -111,6 +113,8 @@ Volledige review uitgevoerd op 2026-03-02. Issues gesorteerd op prioriteit.
 
 ### PDF verbeteringen
 
+- [ ] **SPAN hiding labels** — `reportlab.platypus.flowables.Spacer` i.p.v. `<span>` tags die labels verbergen in PDF cellen
+- [ ] **Opmerkingen escapen** — User input in Paragraph flowables escapen tegen ReportLab markup injection
 - [ ] Paginering bij veel banen (multi-page PDF support)
 - [ ] Logo/bedrijfsbranding toevoegen aan header
 - [ ] Landscape optie voor orders met veel banen
@@ -131,6 +135,18 @@ Wanneer FastAPI nodig is:
 - [ ] Type hints toevoegen aan `calculations.py` en `summary.py`
 - [ ] `materiaal = 145` configureerbaar maken (bevinding #8)
 - [ ] Form defaults naar Django settings verplaatsen (bevinding #16)
+
+---
+
+## PR Historie
+
+| PR | Branch | Status | Inhoud |
+|----|--------|--------|--------|
+| #1 | `feature/fastapi-integration` | MERGED | FastAPI REST API |
+| #2 | `feature/pdf-summary` | MERGED | PDF summary, HANDOFF.md, code review |
+| #3 | `feature/vdp-meters` | MERGED | Max meters per VDP, form UX, kern dropdown |
+| #4 | `fix/business-logic-omschrijving` | OPEN | Omschrijving kolom fix (alleen sluitetiketten) |
+| #5 | `fix/critical-issues` | MERGED | Migration, XSS, HTML, __pycache__ |
 
 ---
 
