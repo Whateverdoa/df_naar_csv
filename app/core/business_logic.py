@@ -8,7 +8,9 @@ import pandas as pd
 from openpyxl import load_workbook
 import xlrd
 import xlwt
-from icecream import ic
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def file_to_generator(file_in):
@@ -70,7 +72,7 @@ def begin_eind_dataframe(df_rol):
 def rol_beeld_is_pdf_uit_excel(regel, wikkel, posities_sluitbarcode=8, pdf_sluitetiket=True, extra_etiketten=5):
     """Build a single-roll DataFrame with wikkel wrapping and sluitetiket rows."""
     aantal = int(regel.aantal)
-    columns = ["beeld", "omschrijving", "Artnr", "sluitbarcode"]
+    columns = ["pdf", "omschrijving", "Artnr", "sluitbarcode"]
 
     rol_vulling = pd.DataFrame(
         [(f'{regel.beeld}', "", regel.Artnr, f"{regel.sluitbarcode:0>{posities_sluitbarcode}}")
@@ -128,12 +130,11 @@ def splitter_df_2(df_in,
         aantal_lijst.append((df_regel_aantal))
 
         som = sum(aantal_lijst)
-        ic(som)
 
         if som >= gemiddelde or aantal_rollen == num:
 
             print(f'gemiddelde ={gemiddelde} som = {som} verschil = {som-gemiddelde}, STOP * {num} rollen in  file in dataframes_gesplitst__')
-            dataframes_gesplitst.append(dataframe_lijst)
+            dataframes_gesplitst.append(pd.concat(dataframe_lijst, ignore_index=True))
             dataframe_lijst=[]
 
             aantal_lijst = []
@@ -183,21 +184,19 @@ def lijst_opbreker(lijst_in, mes_waarde, combi):
 def maak_een_dummy_baan(dummy_baan_generator, gemiddelde, aantal_dummy_banen):
     """Create dummy lanes"""
     kolomnamen = list(dummy_baan_generator.columns)
-    ic(kolomnamen)
+    logger.debug("dummy baan kolomnamen: %s", kolomnamen)
     
     # Replace image value for stans.pdf or leeg.pdf
     dummy_baan_generator['beeld'] = "stans.pdf"
     if 'sluitbeeld' in dummy_baan_generator.columns:
         dummy_baan_generator['sluitbeeld'] = "leeg.pdf"
 
-    ic(dummy_baan_generator)
-
     # Get rules for dummies
     db = dummy_baan_generator[0:aantal_dummy_banen].itertuples()
     print(f'{db=}')
 
     def dummy_rol_is_baan(regel, gemiddelde_aantal, pdf_sluitetiket=True):
-        columns = ["beeld", "omschrijving", "Artnr", "sluitbarcode"]
+        columns = ["pdf", "omschrijving", "Artnr", "sluitbarcode"]
         aantal = gemiddelde_aantal
 
         rol_vulling = pd.DataFrame(
@@ -206,7 +205,7 @@ def maak_een_dummy_baan(dummy_baan_generator, gemiddelde, aantal_dummy_banen):
         return rol_vulling
 
     dummy_lijst_voor_baan = [dummy_rol_is_baan(regel, gemiddelde, pdf_sluitetiket=True) for regel in db]
-    ic(dummy_lijst_voor_baan[0].columns if dummy_lijst_voor_baan else "No dummy lanes created")
+    logger.debug("dummy baan columns: %s", dummy_lijst_voor_baan[0].columns if dummy_lijst_voor_baan else "No dummy lanes created")
 
     return dummy_lijst_voor_baan, len(dummy_lijst_voor_baan)
 
@@ -303,3 +302,31 @@ def df_sum_form_writer(**kwargs):
     df_summary = pd.DataFrame.from_dict(sum_dik, orient="index")
 
     return df_summary
+
+
+def pdf_sum_form_writer(output_dir, titel, banen_data, **kwargs):
+    """Write a PDF summary file alongside the existing HTML/Excel summaries.
+
+    Parameters
+    ----------
+    output_dir : str or Path
+        Directory where the PDF will be written.
+    titel : str
+        Used as the filename stem (e.g. "summary" → "summary.pdf").
+    banen_data : dict
+        Must contain ``meters_per_baan`` (list[float]) and
+        ``banen_summary`` (list[dict]) keys.
+    **kwargs
+        Remaining job parameters forwarded to ``generate_pdf_summary``.
+    """
+    from pdf_summary import generate_pdf_summary
+
+    output_path = Path(output_dir) / f"{titel}.pdf"
+
+    generate_pdf_summary(
+        output_path=output_path,
+        meters_per_baan=banen_data.get("meters_per_baan", []),
+        banen_summary=banen_data.get("banen_summary", []),
+        **kwargs,
+    )
+    return output_path
