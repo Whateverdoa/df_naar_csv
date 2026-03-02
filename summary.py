@@ -1,7 +1,6 @@
 import itertools
 from pathlib import Path
 import pandas as pd
-from icecream import ic
 
 
 columns = ["beeld", "omschrijving","aantal"]

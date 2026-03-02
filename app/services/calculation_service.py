@@ -14,7 +14,8 @@ from app.core.business_logic import (
     maak_een_dummy_baan,
     summary_splitter_df_2,
     df_sum_met_slice,
-    df_sum_form_writer
+    df_sum_form_writer,
+    pdf_sum_form_writer,
 )
 
 
@@ -165,3 +166,20 @@ class CalculationService:
             
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Form summary creation failed: {str(e)}")
+
+    def create_pdf_summary(
+        self,
+        output_dir: str,
+        titel: str,
+        banen_data: dict,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """Create a PDF summary using pdf_sum_form_writer."""
+        try:
+            output_path = pdf_sum_form_writer(output_dir, titel, banen_data, **kwargs)
+            return {
+                "pdf_path": str(output_path),
+                "parameters": kwargs,
+            }
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"PDF summary creation failed: {str(e)}")

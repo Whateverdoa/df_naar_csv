@@ -6,15 +6,15 @@ This document describes the FastAPI integration for the DF naar CSV application,
 
 ### Prerequisites
 - Python 3.10+
-- pip package manager
+- [uv](https://docs.astral.sh/uv/) package manager
 
 ### Installation
 ```bash
 # Install dependencies
-pip install -r requirements.txt
+uv sync
 
 # Start the development server
-python run_api.py
+uv run python run_api.py
 ```
 
 The API will be available at:
@@ -240,10 +240,11 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ### Docker Deployment (Future)
 ```dockerfile
 FROM python:3.10-slim
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
 COPY . .
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
 ## 🤝 Contributing
