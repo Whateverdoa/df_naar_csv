@@ -1,7 +1,6 @@
 import itertools
 from pathlib import Path
 import pandas as pd
-from icecream import ic
 
 
 columns = ["beeld", "omschrijving","aantal"]
@@ -108,32 +107,22 @@ def df_sum_met_slice(de_te_gebruiken_dataframe, functie_splitter_tuple_lijst_mak
 
 
 def html_sum_form_writer(user_designated_file_path, titel="summary", **kwargs):
-    """ "build a html file for summary purposes with  *kwargv
-    search jinja and flask
-    css link toevoegen
-    """
-    for key, value in kwargs.items():
-        print(key, value)
+    """Build a HTML file for summary purposes with **kwargs."""
+    import html as _html
 
     naam_html_file = f"{user_designated_file_path}/{titel}.html"
 
     with open(naam_html_file, "w") as f_html:
-
-        #         for key, value in kwargs.items():
-        #             print(key, value)
-
-        print("<!DOCTYPE html>\n", file=f_html)
-        print('<html lang = "en">\n', file=f_html)
-        print("     <head>\n", file=f_html)
-        print("<meta charset='UTF-8>'\n", file=f_html)
-        # print(f"<title>{titel.capitalize()}</title>\n", file=f_html)
-        print("     </head>", file=f_html)
-        print("         <body>", file=f_html)
+        print("<!DOCTYPE html>", file=f_html)
+        print('<html lang="en">', file=f_html)
+        print("  <head>", file=f_html)
+        print("    <meta charset='UTF-8'>", file=f_html)
+        print("  </head>", file=f_html)
+        print("  <body>", file=f_html)
         for key, value in kwargs.items():
-            print(f" <p><b>{key}</b> : {value}<p/>", file=f_html)
-
-        print("         </body>", file=f_html)
-        print(" </html>", file=f_html)
+            print(f"    <p><b>{_html.escape(str(key))}</b> : {_html.escape(str(value))}</p>", file=f_html)
+        print("  </body>", file=f_html)
+        print("</html>", file=f_html)
 
 
 def df_sum_form_writer(**kwargs):

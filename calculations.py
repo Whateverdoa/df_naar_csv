@@ -1,20 +1,32 @@
 import itertools
+import math
 from pathlib import Path
 import pandas as pd
 # from rollen import dummy_rol_is_baan
 from rollen import rol_beeld_is_pdf_uit_excel,rol_cq_regel_uitwerker
 
 
-import PySimpleGUI as sg
+import logging
 
 from openpyxl import load_workbook
 import xlrd
 import xlwt
 
-# oplossing voor uitgevulde nummers met voorloop nul is
-# f"{getal:>{0}{posities}}"
+logger = logging.getLogger(__name__)
 
-from icecream import ic
+
+def bereken_vdp_aantal(total_labels, mes, max_meters_per_vdp, formaat_hoogte):
+    """Bereken het aantal VDP's op basis van max meters per rol.
+
+    Meters = rollengte (fysieke lengte, banen lopen parallel).
+    labels_per_baan_max = max_meters * 1000 / (formaat_hoogte + 3)
+    vdp_aantal = ceil(total_labels / (mes * labels_per_baan_max))
+    """
+    if max_meters_per_vdp <= 0:
+        raise ValueError("max_meters_per_vdp must be greater than 0")
+    labels_per_baan_max = max_meters_per_vdp * 1000 / (formaat_hoogte + 3)
+    vdp_aantal = math.ceil(total_labels / (mes * labels_per_baan_max))
+    return max(1, vdp_aantal)
 
 
 def vdp_meters_uit_df_shape(df, formaat_hoogte):
@@ -230,7 +242,6 @@ def splitter_df_2(df_in,
 
 
         som = sum(aantal_lijst)
-        ic(som)
         # eerste gedeelte wijst zichzelf is een itertuples() loop door de lijst.
         # het gelijk stellen van de teller aan de laatste rol
         # laadt hem in de dataframe_lijst.
@@ -238,7 +249,7 @@ def splitter_df_2(df_in,
         if som >= gemiddelde or aantal_rollen == num:
 
             print(f'gemiddelde ={gemiddelde} som = {som} verschil = {som-gemiddelde}, STOP * {num} rollen in  file in dataframes_gesplitst__')
-            dataframes_gesplitst.append(dataframe_lijst)
+            dataframes_gesplitst.append(pd.concat(dataframe_lijst, ignore_index=True))
             dataframe_lijst=[]
 
             aantal_lijst = []
@@ -305,12 +316,10 @@ def maak_een_dummy_baan(dummy_baan_generator, gemiddelde, aantal_dummy_banen):
      voor de juiste waarden
          """
     kolomnamen = list(dummy_baan_generator.columns)
-    ic(kolomnamen)
+    logger.debug("dummy baan kolomnamen: %s", kolomnamen)
     # vervang beeld waarde voor stans.pdf of leeg.pdf
     dummy_baan_generator['beeld'] ="stans.pdf"
     dummy_baan_generator['sluitbeeld'] ="leeg.pdf"
-
-    ic(dummy_baan_generator)
 
     def bouwertje(generator,x):
         nieuwe_df=[]
@@ -324,7 +333,7 @@ def maak_een_dummy_baan(dummy_baan_generator, gemiddelde, aantal_dummy_banen):
 
     # verwerkte_file_in = pd.DataFrame(nieuwe_df)
     dummy_lijst_voor_baan=[dummy_rol_is_baan(regel,gemiddelde,pdf_sluitetiket=True) for regel in db]
-    ic(dummy_lijst_voor_baan[0].columns)
+    logger.debug("dummy baan columns: %s", dummy_lijst_voor_baan[0].columns)
 
 
     return  dummy_lijst_voor_baan, len(dummy_lijst_voor_baan)
@@ -392,20 +401,15 @@ def inloop_uitloop_stans(df, wikkel, etiket_y, kolomnaam_vervang_waarde):
     # kan je 1 regel maken met generator en dat vermenigvuldigen met inloop waarde
 
     loop = (etiket_y * 10) - (wikkel +(3 * etiket_y))
-    ic(wikkel)
-    ic(loop)
     generator = df.itertuples(index=0)
-    ic(f'{df.head(20)}')
 
     einde_df = len(df)
-    ic(einde_df)
     data_df = []
     nieuwe_df = []
 
     sluitetiket = pd.DataFrame(
         [x for x in itertools.islice(generator, 1, 3)] # if wikkel =1 else???/
     )
-    ic(sluitetiket)
     # sluitetiket2= pd.DataFrame(
     #     [x for x in itertools.islice(generator, 2, 3)],
 
@@ -415,13 +419,10 @@ def inloop_uitloop_stans(df, wikkel, etiket_y, kolomnaam_vervang_waarde):
         data_df.append(seq)
 
     data_df1 = pd.DataFrame(data_df)
-    ic(data_df1)
 
     pdf_data_inloop_enuitloop_uit_iterslice = pd.DataFrame(
         [x for x in itertools.islice(generator, wikkel, wikkel + (3*etiket_y))]
     )
-    ic(pdf_data_inloop_enuitloop_uit_iterslice.head())
-
     generator = df.itertuples(index=0)
     for seq in itertools.islice(generator, 3, loop):
         nieuwe_df.append(seq)
@@ -472,7 +473,6 @@ def maak_meerdere_vdps(banen_gemaakt_uit_eerste_df, mes, aantal_vdps, ordernumme
         vervang_beeld_stans = filna_dict("pdf", "stans.pdf", mes)
         vervang_sluitean_ = filna_dict("sluitbarcode", sluitbarcode_uitvul_waarde_getal, mes)
         vervang_sluitean_.update(vervang_beeld_stans)
-        ic(sluitbarcode_uitvul_waarde_getal)
         nieuwe_df = banen_met_reset_index.fillna(value=vervang_sluitean_)
 
         inloop_uitloop_stans(nieuwe_df, aantal_vdps, etiket_y,
