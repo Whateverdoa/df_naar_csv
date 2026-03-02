@@ -285,10 +285,10 @@ def _build_lanes_table(banen_summary, meters_per_baan, totaal_etiketten, mes,
         # ── VDP subtotal row (grey, bold) ──
         sub_row_idx = len(data)
         data.append([
-            Paragraph("", _S_TABLE_CELL_BOLD),
-            Paragraph("", _S_TABLE_CELL_BOLD),
-            Paragraph("", _S_TABLE_CELL_BOLD),
             Paragraph(f"Subtotaal VDP {vdp_idx + 1}", _S_TABLE_CELL_BOLD),
+            Paragraph("", _S_TABLE_CELL_BOLD),
+            Paragraph("", _S_TABLE_CELL_BOLD),
+            Paragraph("", _S_TABLE_CELL_BOLD),
             Paragraph(str(vdp_subtotal), _S_TABLE_CELL_BOLD),
             Paragraph(f"{vdp_meters:.1f}", _S_TABLE_CELL_BOLD),
         ])
@@ -302,10 +302,10 @@ def _build_lanes_table(banen_summary, meters_per_baan, totaal_etiketten, mes,
     total_meters = sum(meters_per_baan) if meters_per_baan else 0.0
     totals_idx = len(data)
     data.append([
-        Paragraph("", _S_TABLE_CELL_BOLD),
-        Paragraph("", _S_TABLE_CELL_BOLD),
-        Paragraph("", _S_TABLE_CELL_BOLD),
         Paragraph("TOTAAL", _S_TABLE_CELL_BOLD),
+        Paragraph("", _S_TABLE_CELL_BOLD),
+        Paragraph("", _S_TABLE_CELL_BOLD),
+        Paragraph("", _S_TABLE_CELL_BOLD),
         Paragraph(str(totaal_etiketten), _S_TABLE_CELL_BOLD),
         Paragraph(f"{total_meters:.1f}", _S_TABLE_CELL_BOLD),
     ])
@@ -321,10 +321,10 @@ def _build_lanes_table(banen_summary, meters_per_baan, totaal_etiketten, mes,
     avg_meters = total_meters / mes if mes else 0.0
     avg_idx = len(data)
     data.append([
-        Paragraph("", _S_TABLE_CELL_ITALIC),
-        Paragraph("", _S_TABLE_CELL_ITALIC),
-        Paragraph("", _S_TABLE_CELL_ITALIC),
         Paragraph("GEMIDDELDE / BAAN", _S_TABLE_CELL_ITALIC),
+        Paragraph("", _S_TABLE_CELL_ITALIC),
+        Paragraph("", _S_TABLE_CELL_ITALIC),
+        Paragraph("", _S_TABLE_CELL_ITALIC),
         Paragraph(f"{avg_labels:.0f}", _S_TABLE_CELL_ITALIC),
         Paragraph(f"{avg_meters:.1f}", _S_TABLE_CELL_ITALIC),
     ])
