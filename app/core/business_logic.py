@@ -77,11 +77,11 @@ def rol_beeld_is_pdf_uit_excel(regel, wikkel, posities_sluitbarcode=8, pdf_sluit
 
     if pdf_sluitetiket:
         rol_vulling = pd.DataFrame(
-            [(f'{regel.beeld}', regel.Omschrijving, regel.Artnr, f"{regel.sluitbarcode:0>{posities_sluitbarcode}}")
+            [(f'{regel.beeld}', "", regel.Artnr, f"{regel.sluitbarcode:0>{posities_sluitbarcode}}")
              for x in range(aantal + extra_etiketten)], columns=columns)
     else:
         rol_vulling = pd.DataFrame(
-            [(f'{regel.beeld}', regel.Omschrijving, regel.Artnr, f"{regel.sluitbarcode:0>{posities_sluitbarcode}}")
+            [(f'{regel.beeld}', "", regel.Artnr, f"{regel.sluitbarcode:0>{posities_sluitbarcode}}")
              for x in range(aantal + extra_etiketten)], columns=columns)
 
     return rol_vulling, aantal
