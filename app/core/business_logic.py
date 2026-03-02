@@ -70,13 +70,12 @@ def begin_eind_dataframe(df_rol):
 
 
 def rol_beeld_is_pdf_uit_excel(regel, wikkel, posities_sluitbarcode=8, pdf_sluitetiket=True, extra_etiketten=5):
-    """Builds a single roll DataFrame with wikkel (stans.pdf) wrapping and
-    sluitetiket (leeg.pdf) rows, matching the structure in rollen.py."""
+    """Build a single-roll DataFrame with wikkel wrapping and sluitetiket rows."""
     aantal = int(regel.aantal)
     columns = ["pdf", "omschrijving", "Artnr", "sluitbarcode"]
 
     rol_vulling = pd.DataFrame(
-        [(f'{regel.beeld}', regel.Omschrijving, regel.Artnr, f"{regel.sluitbarcode:0>{posities_sluitbarcode}}")
+        [(f'{regel.beeld}', "", regel.Artnr, f"{regel.sluitbarcode:0>{posities_sluitbarcode}}")
          for _ in range(aantal + extra_etiketten)], columns=columns)
 
     if pdf_sluitetiket and hasattr(regel, 'sluitbeeld'):
@@ -85,7 +84,8 @@ def rol_beeld_is_pdf_uit_excel(regel, wikkel, posities_sluitbarcode=8, pdf_sluit
             columns=columns)
     else:
         sluitetiket = pd.DataFrame(
-            [("leeg.pdf", f'{regel.Omschrijving} | {aantal} etiketten', "", f"{regel.sluitbarcode:0>{posities_sluitbarcode}}")],
+            [("leeg.pdf", f'{regel.Omschrijving} | {aantal} etiketten', "",
+              f"{regel.sluitbarcode:0>{posities_sluitbarcode}}")],
             columns=columns)
 
     wikkel_om_rol = pd.DataFrame(
