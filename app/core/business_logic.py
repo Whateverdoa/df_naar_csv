@@ -18,22 +18,14 @@ def file_to_generator(file_in):
      on which to Generate with itertuples or ...."""
     suffix = Path(file_in).suffix.lower()
 
-    try:
-        if suffix == ".csv":
-            return pd.read_csv(file_in, sep=";")
-        elif suffix == ".xlsx":
-            return pd.read_excel(file_in, engine='openpyxl')
-        elif suffix == ".xls":
-            return pd.read_excel(file_in)
-        else:
-            logger.warning("Unsupported file format: %s", suffix)
-            return None
-    except FileNotFoundError:
-        logger.error("File not found: %s", file_in)
-        return None
-    except Exception as e:
-        logger.error("Failed to read file %s: %s", file_in, e)
-        return None
+    if suffix == ".csv":
+        return pd.read_csv(file_in, sep=";")
+    elif suffix == ".xlsx":
+        return pd.read_excel(file_in, engine='openpyxl')
+    elif suffix == ".xls":
+        return pd.read_excel(file_in)
+    else:
+        raise ValueError(f"Unsupported file format: {suffix}")
 
 
 def wikkel_formule():
