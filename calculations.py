@@ -1,4 +1,5 @@
 import itertools
+import math
 from pathlib import Path
 import pandas as pd
 # from rollen import dummy_rol_is_baan
@@ -15,6 +16,18 @@ import xlwt
 # f"{getal:>{0}{posities}}"
 
 from icecream import ic
+
+
+def bereken_vdp_aantal(total_labels, mes, max_meters_per_vdp, formaat_hoogte):
+    """Bereken het aantal VDP's op basis van max meters per rol.
+
+    Meters = rollengte (fysieke lengte, banen lopen parallel).
+    labels_per_baan_max = max_meters * 1000 / (formaat_hoogte + 3)
+    vdp_aantal = ceil(total_labels / (mes * labels_per_baan_max))
+    """
+    labels_per_baan_max = max_meters_per_vdp * 1000 / (formaat_hoogte + 3)
+    vdp_aantal = math.ceil(total_labels / (mes * labels_per_baan_max))
+    return max(1, vdp_aantal)
 
 
 def vdp_meters_uit_df_shape(df, formaat_hoogte):
