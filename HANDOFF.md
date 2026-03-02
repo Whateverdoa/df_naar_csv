@@ -93,7 +93,7 @@ Volledige review uitgevoerd op 2026-03-02. Issues gesorteerd op prioriteit.
 
 ### Business logic fixes
 
-- [x] ~~**Omschrijving/Artikel kolom mapping**~~ — Omschrijving leeg bij normale etiketten, alleen gevuld bij sluitetiketten. (PR #4 — open, wacht op merge)
+- [x] ~~**Omschrijving/Artikel kolom mapping**~~ — Omschrijving leeg bij normale etiketten, alleen gevuld bij sluitetiketten. (PR #4 merged)
 
 ### Kritieke bugs (voor deploy)
 
@@ -145,7 +145,7 @@ Wanneer FastAPI nodig is:
 | #1 | `feature/fastapi-integration` | MERGED | FastAPI REST API |
 | #2 | `feature/pdf-summary` | MERGED | PDF summary, HANDOFF.md, code review |
 | #3 | `feature/vdp-meters` | MERGED | Max meters per VDP, form UX, kern dropdown |
-| #4 | `fix/business-logic-omschrijving` | OPEN | Omschrijving kolom fix (alleen sluitetiketten) |
+| #4 | `fix/business-logic-omschrijving` | MERGED | Omschrijving kolom fix (alleen sluitetiketten) |
 | #5 | `fix/critical-issues` | MERGED | Migration, XSS, HTML, __pycache__ |
 
 ---
